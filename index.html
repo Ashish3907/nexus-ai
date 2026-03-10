@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NexusAI — AI Content Studio</title>
+  <meta name="description" content="NexusAI — The all-in-one AI platform for content creation, coding, image prompts, and smart chat. Your AI co-pilot for everything."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+
+<!-- Ambient background blobs -->
+<div class="bg-blob blob1"></div>
+<div class="bg-blob blob2"></div>
+<div class="bg-blob blob3"></div>
+
+<div class="app-layout">
+
+  <!-- ─── SIDEBAR ─── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="18" fill="url(#lg1)"/><path d="M10 18c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8-8 8" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/><circle cx="18" cy="18" r="3" fill="#fff"/><defs><linearGradient id="lg1" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse"><stop stop-color="#7C3AED"/><stop offset="1" stop-color="#2563EB"/></linearGradient></defs></svg>
+      </div>
+      <span class="logo-text">NexusAI</span>
+    </div>
+
+    <div class="sidebar-section-label">TOOLS</div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-tool="chat" onclick="switchTool('chat')">
+        <span class="nav-icon">💬</span><span>AI Chat</span>
+        <span class="nav-badge hot">HOT</span>
+      </button>
+      <button class="nav-item" data-tool="writer" onclick="switchTool('writer')">
+        <span class="nav-icon">✍️</span><span>Content Writer</span>
+      </button>
+      <button class="nav-item" data-tool="image" onclick="switchTool('image')">
+        <span class="nav-icon">🎨</span><span>Image Prompt AI</span>
+        <span class="nav-badge new">NEW</span>
+      </button>
+      <button class="nav-item" data-tool="code" onclick="switchTool('code')">
+        <span class="nav-icon">⌨️</span><span>Code Helper</span>
+      </button>
+      <button class="nav-item" data-tool="seo" onclick="switchTool('seo')">
+        <span class="nav-icon">📈</span><span>SEO Optimizer</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-section-label" style="margin-top:24px">ACCOUNT</div>
+    <nav class="sidebar-nav">
+      <button class="nav-item" onclick="showUpgrade()">
+        <span class="nav-icon">⚡</span><span>Upgrade to Pro</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar">A</div>
+        <div class="user-info">
+          <div class="user-name">Ashish SB</div>
+          <div class="user-plan">Free Plan · 45 credits</div>
+        </div>
+      </div>
+      <div class="usage-bar-wrap">
+        <div class="usage-bar-label"><span>Daily Credits</span><span>45/100</span></div>
+        <div class="usage-bar"><div class="usage-fill" style="width:45%"></div></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ─── MAIN ─── -->
+  <main class="main-content">
+
+    <!-- Top Bar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1 class="page-title" id="page-title">AI Chat</h1>
+        <span class="page-subtitle" id="page-subtitle">Ask anything. Get instant AI-powered answers.</span>
+      </div>
+      <div class="topbar-right">
+        <div class="model-pill">
+          <span class="model-dot"></span>
+          <span id="model-label">Nexus Pro 2.5</span>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 4.5l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <button class="icon-btn" title="Settings">⚙️</button>
+        <button class="icon-btn" title="Notifications">🔔</button>
+      </div>
+    </header>
+
+    <!-- ══ TOOL PANELS ══ -->
+
+    <!-- CHAT TOOL -->
+    <section class="tool-panel active" id="tool-chat">
+      <div class="chat-container">
+        <div class="chat-messages" id="chat-messages">
+          <div class="chat-welcome">
+            <div class="welcome-icon">🤖</div>
+            <h2>Hello, Ashish! I'm Nexus.</h2>
+            <p>Your AI co-pilot. Ask me anything — content ideas, business strategy, coding help, research, and more.</p>
+            <div class="suggestion-chips">
+              <button class="chip" onclick="sendSuggestion('Give me 5 viral YouTube video ideas for 2026')">💡 Viral YouTube ideas</button>
+              <button class="chip" onclick="sendSuggestion('Write a cold email to get my first SaaS customer')">✉️ Cold email template</button>
+              <button class="chip" onclick="sendSuggestion('How do I grow my AI SaaS to $10K/month?')">🚀 SaaS growth tips</button>
+              <button class="chip" onclick="sendSuggestion('Explain AI agents in simple terms')">🧠 Explain AI agents</button>
+            </div>
+          </div>
+        </div>
+        <div class="chat-input-area">
+          <div class="chat-input-wrapper">
+            <textarea id="chat-input" class="chat-input" placeholder="Ask Nexus anything..." rows="1" onkeydown="handleChatKey(event)" oninput="autoResize(this)"></textarea>
+            <div class="chat-actions">
+              <button class="action-btn secondary" title="Attach file">📎</button>
+              <button class="send-btn" id="send-btn" onclick="sendMessage()">
+                <svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M22 2L11 13" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><path d="M22 2L15 22l-4-9-9-4 20-7z" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTENT WRITER TOOL -->
+    <section class="tool-panel" id="tool-writer">
+      <div class="writer-layout">
+        <div class="writer-controls glass-card">
+          <h3>Content Settings</h3>
+          <label class="field-label">Content Type</label>
+          <select class="styled-select" id="content-type">
+            <option value="blog">📝 Blog Post</option>
+            <option value="social">📱 Social Media Post</option>
+            <option value="email">✉️ Email Copy</option>
+            <option value="ad">📣 Ad Copy</option>
+            <option value="linkedin">💼 LinkedIn Article</option>
+            <option value="youtube">▶️ YouTube Description</option>
+          </select>
+
+          <label class="field-label">Topic / Keywords</label>
+          <input type="text" class="styled-input" id="writer-topic" placeholder="e.g. AI tools for 2026, productivity hacks..." />
+
+          <label class="field-label">Tone</label>
+          <div class="tone-grid">
+            <button class="tone-btn active" onclick="setTone(this,'professional')">Professional</button>
+            <button class="tone-btn" onclick="setTone(this,'casual')">Casual</button>
+            <button class="tone-btn" onclick="setTone(this,'persuasive')">Persuasive</button>
+            <button class="tone-btn" onclick="setTone(this,'funny')">Funny</button>
+          </div>
+
+          <label class="field-label">Length</label>
+          <input type="range" class="styled-range" id="content-length" min="100" max="2000" value="500" oninput="document.getElementById('len-val').textContent=this.value+' words'"/>
+          <span class="range-val" id="len-val">500 words</span>
+
+          <button class="primary-btn full-width" onclick="generateContent()">
+            <span>✨ Generate Content</span>
+          </button>
+        </div>
+
+        <div class="writer-output glass-card">
+          <div class="output-header">
+            <h3>Generated Content</h3>
+            <div class="output-actions">
+              <button class="sm-btn" onclick="copyOutput()">📋 Copy</button>
+              <button class="sm-btn" onclick="regenerateContent()">🔄 Regenerate</button>
+            </div>
+          </div>
+          <div class="output-area" id="writer-output">
+            <div class="empty-state">
+              <div class="empty-icon">✍️</div>
+              <p>Your AI-generated content will appear here.<br/>Fill in the settings and click Generate!</p>
+            </div>
+          </div>
+          <div class="word-count" id="word-count"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- IMAGE PROMPT TOOL -->
+    <section class="tool-panel" id="tool-image">
+      <div class="image-layout">
+        <div class="image-controls glass-card">
+          <h3>🎨 Image Prompt Generator</h3>
+          <p class="tool-desc">Describe your idea and let AI craft the perfect prompt for Midjourney, DALL·E, or Stable Diffusion.</p>
+
+          <label class="field-label">Your Concept</label>
+          <textarea class="styled-textarea" id="image-concept" placeholder="e.g. a futuristic city at night with neon lights and flying cars..."></textarea>
+
+          <label class="field-label">Art Style</label>
+          <div class="style-grid">
+            <button class="style-btn active" onclick="setStyle(this,'photorealistic')">📷 Photorealistic</button>
+            <button class="style-btn" onclick="setStyle(this,'anime')">🎌 Anime</button>
+            <button class="style-btn" onclick="setStyle(this,'oil-painting')">🖼️ Oil Painting</button>
+            <button class="style-btn" onclick="setStyle(this,'3d-render')">🌐 3D Render</button>
+            <button class="style-btn" onclick="setStyle(this,'watercolor')">💧 Watercolor</button>
+            <button class="style-btn" onclick="setStyle(this,'cyberpunk')">⚡ Cyberpunk</button>
+          </div>
+
+          <label class="field-label">Platform</label>
+          <select class="styled-select" id="img-platform">
+            <option>Midjourney</option>
+            <option>DALL·E 3</option>
+            <option>Stable Diffusion</option>
+            <option>Adobe Firefly</option>
+          </select>
+
+          <button class="primary-btn full-width" onclick="generateImagePrompt()">✨ Generate Prompt</button>
+        </div>
+
+        <div class="image-output-area glass-card">
+          <h3>Generated Prompts</h3>
+          <div id="prompt-results" class="prompt-results">
+            <div class="empty-state">
+              <div class="empty-icon">🎨</div>
+              <p>Your AI-crafted image prompts will appear here.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CODE HELPER TOOL -->
+    <section class="tool-panel" id="tool-code">
+      <div class="code-layout">
+        <div class="code-controls glass-card">
+          <h3>⌨️ AI Code Helper</h3>
+          <label class="field-label">Language</label>
+          <select class="styled-select" id="code-lang">
+            <option>JavaScript</option>
+            <option>Python</option>
+            <option>TypeScript</option>
+            <option>React</option>
+            <option>SQL</option>
+            <option>PHP</option>
+            <option>Swift</option>
+          </select>
+          <label class="field-label">Task Type</label>
+          <select class="styled-select" id="code-task">
+            <option>Generate Code</option>
+            <option>Debug Code</option>
+            <option>Explain Code</option>
+            <option>Optimize Code</option>
+            <option>Add Comments</option>
+          </select>
+          <label class="field-label">Describe what you need</label>
+          <textarea class="styled-textarea" id="code-prompt" placeholder="e.g. Create a REST API endpoint for user login with JWT authentication..."></textarea>
+          <button class="primary-btn full-width" onclick="generateCode()">⚡ Generate Code</button>
+        </div>
+        <div class="code-output glass-card">
+          <div class="output-header">
+            <h3>Code Output</h3>
+            <div class="output-actions">
+              <button class="sm-btn" onclick="copyCode()">📋 Copy Code</button>
+            </div>
+          </div>
+          <pre class="code-block" id="code-output"><code class="code-placeholder">// Your AI-generated code will appear here
+// Fill in the details on the left and click Generate!</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- SEO TOOL -->
+    <section class="tool-panel" id="tool-seo">
+      <div class="seo-layout glass-card">
+        <h3>📈 AI SEO Optimizer</h3>
+        <p class="tool-desc">Analyze and optimize your content for search engines instantly.</p>
+        <div class="seo-form">
+          <label class="field-label">Target Keyword</label>
+          <input type="text" class="styled-input" id="seo-keyword" placeholder="e.g. best AI tools 2026"/>
+          <label class="field-label">Your Content / URL</label>
+          <textarea class="styled-textarea" id="seo-content" placeholder="Paste your content here or enter a URL to analyze..."></textarea>
+          <button class="primary-btn" onclick="runSEO()">🔍 Analyze & Optimize</button>
+        </div>
+        <div id="seo-results" class="seo-results"></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Upgrade Modal -->
+<div class="modal-overlay" id="upgrade-modal" onclick="hideUpgrade()">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <div class="modal-badge">⚡ LIMITED OFFER</div>
+    <h2 class="modal-title">Upgrade to <span class="grad-text">NexusAI Pro</span></h2>
+    <p class="modal-sub">Unlock unlimited credits, priority AI, and all premium tools.</p>
+    <div class="pricing-cards">
+      <div class="price-card">
+        <div class="price-name">Starter</div>
+        <div class="price-amount">$9<span>/mo</span></div>
+        <ul><li>✓ 500 credits/day</li><li>✓ All AI tools</li><li>✓ Email support</li></ul>
+        <button class="price-btn">Choose Starter</button>
+      </div>
+      <div class="price-card featured">
+        <div class="featured-tag">MOST POPULAR</div>
+        <div class="price-name">Pro</div>
+        <div class="price-amount">$29<span>/mo</span></div>
+        <ul><li>✓ Unlimited credits</li><li>✓ GPT-4 Turbo access</li><li>✓ API access</li><li>✓ Priority support</li></ul>
+        <button class="price-btn featured-btn">Choose Pro</button>
+      </div>
+      <div class="price-card">
+        <div class="price-name">Business</div>
+        <div class="price-amount">$99<span>/mo</span></div>
+        <ul><li>✓ 5 team seats</li><li>✓ Custom AI training</li><li>✓ White-label option</li><li>✓ Dedicated support</li></ul>
+        <button class="price-btn">Choose Business</button>
+      </div>
+    </div>
+    <button class="modal-close" onclick="hideUpgrade()">✕ Close</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
