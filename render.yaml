@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: nexus-ai
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    headers:
+      - path: /*
+        name: Access-Control-Allow-Origin
+        value: "*"
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false # User will need to provide this in Render UI
+      - key: JWT_SECRET
+        generateValue: true # Render will generate a secure secret automatically
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
