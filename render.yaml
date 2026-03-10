@@ -5,10 +5,6 @@ services:
     plan: free
     buildCommand: npm install
     startCommand: node server.js
-    headers:
-      - path: /*
-        name: Access-Control-Allow-Origin
-        value: "*"
     envVars:
       - key: GROQ_API_KEY
         sync: false # User will need to provide this in Render UI
