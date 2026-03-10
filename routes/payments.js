@@ -1,15 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const { verifyToken } = require('../middleware/auth');
-
-// Stripe setup — gracefully handle missing key
-let stripe = null;
-if (process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY.startsWith('sk_')) {
-    stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-}
-
+const Razorpay = require('razorpay');
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
+
+// Razorpay setup
+const razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder',
+    key_secret: process.env.RAZORPAY_KEY_SECRET || 'placeholder_secret'
+});
 
 function updateUserPlan(userId, plan) {
     const dbPath = path.join(__dirname, '..', 'data', 'users.json');
@@ -21,6 +22,7 @@ function updateUserPlan(userId, plan) {
             // Upgrade credits based on plan
             if (plan === 'pro') users[idx].credits = 999999;
             if (plan === 'business') users[idx].credits = 9999999;
+            if (plan === 'starter') users[idx].credits = (users[idx].credits || 0) + 1000;
             fs.writeFileSync(dbPath, JSON.stringify(users, null, 2));
         }
     } catch (err) {
@@ -31,26 +33,31 @@ function updateUserPlan(userId, plan) {
 const PLANS = {
     starter: {
         name: 'Starter',
-        price: '$9/month',
-        priceId: process.env.STRIPE_PRICE_STARTER,
-        features: ['500 credits/day', 'All AI tools', 'Email support']
+        price: '₹799',
+        amountInPaise: 79900,
+        features: ['1000 credits', 'All AI tools', 'Email support']
     },
     pro: {
         name: 'Pro',
-        price: '$29/month',
-        priceId: process.env.STRIPE_PRICE_PRO,
+        price: '₹2,499',
+        amountInPaise: 249900,
         features: ['Unlimited credits', 'GPT-4o access', 'API access', 'Priority support']
     },
     business: {
         name: 'Business',
-        price: '$99/month',
-        priceId: process.env.STRIPE_PRICE_BUSINESS,
+        price: '₹7,999',
+        amountInPaise: 799900,
         features: ['5 team seats', 'Custom AI training', 'White-label', 'Dedicated support']
     }
 };
 
-// ── POST /api/payments/checkout ──────────────────────────────────────────
-router.post('/checkout', verifyToken, async (req, res) => {
+// ── GET /api/payments/plans ──────────────────────────────────────────────
+router.get('/plans', (req, res) => {
+    res.json({ plans: PLANS, razorpayKey: process.env.RAZORPAY_KEY_ID || '' });
+});
+
+// ── POST /api/payments/razorpay-order ────────────────────────────────────
+router.post('/razorpay-order', verifyToken, async (req, res) => {
     try {
         const { plan } = req.body;
         const selectedPlan = PLANS[plan];
@@ -59,57 +66,46 @@ router.post('/checkout', verifyToken, async (req, res) => {
             return res.status(400).json({ error: 'Invalid plan selected.' });
         }
 
-        // If Stripe not configured, return a demo message
-        if (!stripe) {
-            return res.json({
-                demo: true,
-                message: `Demo mode: Would create a Stripe checkout for ${selectedPlan.name} (${selectedPlan.price}). Add your STRIPE_SECRET_KEY to .env to enable real payments.`,
-                plan: selectedPlan
-            });
-        }
+        const options = {
+            amount: selectedPlan.amountInPaise,
+            currency: "INR",
+            receipt: `receipt_${req.user.id}_${Date.now()}`,
+            notes: {
+                userId: req.user.id,
+                plan: plan
+            }
+        };
 
-        const session = await stripe.checkout.sessions.create({
-            payment_method_types: ['card'],
-            mode: 'subscription',
-            line_items: [{
-                price: selectedPlan.priceId,
-                quantity: 1
-            }],
-            customer_email: req.user.email,
-            metadata: { userId: req.user.id, plan },
-            success_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}?payment=success&plan=${plan}`,
-            cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}?payment=cancelled`,
-        });
-
-        res.json({ url: session.url });
+        const order = await razorpay.orders.create(options);
+        res.json({ order, key_id: process.env.RAZORPAY_KEY_ID });
     } catch (err) {
-        console.error('Payment error:', err.message);
-        res.status(500).json({ error: 'Payment setup failed.' });
+        console.error('Razorpay Order Error:', err.message);
+        res.status(500).json({ error: 'Failed to create payment order.' });
     }
 });
 
-// ── GET /api/payments/plans ──────────────────────────────────────────────
-router.get('/plans', (req, res) => {
-    res.json({ plans: PLANS, stripeEnabled: !!stripe });
-});
+// ── POST /api/payments/razorpay-verify ────────────────────────────────────
+router.post('/razorpay-verify', verifyToken, async (req, res) => {
+    try {
+        const { razorpay_order_id, razorpay_payment_id, razorpay_signature, plan } = req.body;
 
-// ── POST /api/payments/webhook (Stripe Webhook) ──────────────────────────
-router.post('/webhook', (req, res) => {
-    const event = req.body;
+        const body = razorpay_order_id + "|" + razorpay_payment_id;
+        const expectedSignature = crypto
+            .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || 'placeholder_secret')
+            .update(body.toString())
+            .digest('hex');
 
-    // Handle the checkout.session.completed event
-    if (event && event.type === 'checkout.session.completed') {
-        const session = event.data.object;
-        const userId = session.metadata?.userId;
-        const plan = session.metadata?.plan;
-
-        if (userId && plan) {
-            updateUserPlan(userId, plan);
-            console.log(`✅ User ${userId} upgraded to ${plan} plan via Stripe payload.`);
+        if (expectedSignature === razorpay_signature) {
+            // Payment verified
+            updateUserPlan(req.user.id, plan);
+            res.json({ success: true, message: 'Payment verified and plan upgraded!' });
+        } else {
+            res.status(400).json({ error: 'Invalid payment signature.' });
         }
+    } catch (err) {
+        console.error('Verification Error:', err.message);
+        res.status(500).json({ error: 'Payment verification failed.' });
     }
-
-    res.json({ received: true });
 });
 
 module.exports = router;
