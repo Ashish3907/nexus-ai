@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://nexus-ai-yagl.onrender.com/sitemap.xml
