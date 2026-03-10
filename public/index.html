@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NexusAI | The All-in-One AI Studio</title>
+  <link rel="stylesheet" href="styles.css?v=3">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- PWA & Mobile Optimization -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#8b5cf6">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2103/2103633.png">
+  <style>
+    .memory-active {
+      color: var(--primary) !important;
+      text-shadow: 0 0 10px rgba(139, 92, 246, 0.6);
+    }
+
+    .knowledge-status {
+      font-size: 10px;
+      color: var(--text-secondary);
+      margin-left: 20px;
+      opacity: 0;
+      transition: 0.3s;
+      margin-bottom: 5px;
+    }
+
+    .knowledge-status.show {
+      opacity: 1;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Premium Mesh Background -->
+  <canvas id="particle-canvas"></canvas>
+  <div class="mesh-bg"></div>
+
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon"><i class="fas fa-bolt"></i></div>
+      <span class="logo-text">NexusAI</span>
+    </div>
+
+    <div class="nav-section">
+      <p class="nav-label">Main Tools</p>
+      <a class="nav-item active" data-tool="home" onclick="switchTool('home')">
+        <i class="fas fa-house-chimney"></i> Nexus Home
+      </a>
+      <a class="nav-item" data-tool="chat" onclick="switchTool('chat')">
+        <i class="fas fa-comment-dots"></i> AI Chat <span class="nav-badge">HOT</span>
+      </a>
+      <a class="nav-item" data-tool="library" onclick="switchTool('library')">
+        <i class="fas fa-bookmark"></i> My Library
+      </a>
+      <a class="nav-item" data-tool="workspaces" onclick="switchTool('workspaces')">
+        <i class="fas fa-folder-tree"></i> Workspaces
+      </a>
+      <p class="nav-label" style="margin-top:24px;">Generation Tools</p>
+      <a class="nav-item" data-tool="writer" onclick="switchTool('writer')">
+        <i class="fas fa-pen-nib"></i> Content Writer
+      </a>
+      <a class="nav-item" data-tool="image" onclick="switchTool('image')">
+        <i class="fas fa-wand-magic-sparkles"></i> Image Prompt AI <span class="nav-badge">NEW</span>
+      </a>
+      <a class="nav-item" data-tool="code" onclick="switchTool('code')">
+        <i class="fas fa-code"></i> Code Helper
+      </a>
+      <a class="nav-item" data-tool="seo" onclick="switchTool('seo')">
+        <i class="fas fa-chart-line"></i> SEO Optimizer
+      </a>
+      <a class="nav-item" data-tool="docs" onclick="switchTool('docs')">
+        <i class="fas fa-file-pdf"></i> Document AI <span class="nav-badge">PRO</span>
+      </a>
+      <a class="nav-item" data-tool="audio" onclick="switchTool('audio')">
+        <i class="fas fa-microphone-lines"></i> Audio AI <span class="nav-badge">NEW</span>
+      </a>
+    </div>
+
+    <div class="nav-section">
+      <p class="nav-label">Account</p>
+      <a class="nav-item" onclick="showUpgrade()">
+        <i class="fas fa-crown"></i> Upgrade to Pro
+      </a>
+      <a class="nav-item" onclick="logout()">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </a>
+      <a class="nav-item" id="admin-link" href="admin.html" style="display:none; color:var(--admin-accent, #10b981);">
+        <i class="fas fa-user-shield"></i> Admin Center
+      </a>
+    </div>
+
+    <!-- Usage Card -->
+    <div class="glass" style="margin-top:auto; padding:16px; border-radius:16px;">
+      <p style="font-size:11px; color:var(--text-secondary); margin-bottom:10px;">MONTHLY USAGE</p>
+      <div
+        style="height:6px; background:rgba(255,255,255,0.05); border-radius:10px; margin-bottom:8px; overflow:hidden;">
+        <div class="usage-fill" style="width:0%; height:100%; background:var(--primary); transition: 1s ease;"></div>
+      </div>
+      <p style="font-size:11px; font-weight:700;">450 / 1000 credits</p>
+    </div>
+  </aside>
+
+  <!-- Main Area -->
+  <main class="main-area">
+    <header class="header">
+      <div>
+        <h1 id="page-title">AI Chat</h1>
+        <p id="page-subtitle">Ask anything. Get instant AI-powered answers.</p>
+      </div>
+
+      <div class="header-right" style="display:flex; align-items:center;">
+        <button id="upgrade-btn-header" class="primary-btn"
+          style="padding:10px 16px; font-size:12px; height:auto; border-radius:12px; margin-right:16px; background:linear-gradient(45deg, #d946ef, #8b5cf6);"
+          onclick="showUpgrade()">
+          <i class="fas fa-crown"></i> UPGRADE
+        </button>
+        <div class="user-profile">
+          <div class="user-avatar text-3d">?</div>
+          <div class="user-info">
+            <span class="user-name">Loading...</span>
+            <span class="user-plan">Free Plan</span>
+          </div>
+        </div>
+        <div style="display:flex; gap:12px;">
+          <button class="glass header-btn" onclick="showSettings()"><i class="fas fa-cog"></i></button>
+          <button class="glass header-btn" onclick="showNotifications()"><i class="fas fa-bell"></i></button>
+        </div>
+      </div>
+    </header>
+
+    <div id="tool-container">
+
+      <!-- Nexus Home: Intelligence Dashboard -->
+      <section id="tool-home" class="tool-panel active">
+        <div class="welcome-header" style="margin-bottom:40px;">
+          <h1 class="text-3d" style="font-size:3rem; margin-bottom:10px;">Welcome Home, Commander</h1>
+          <p style="color:var(--text-secondary);">Nexus OS is online. Your autonomous intelligence is active.</p>
+        </div>
+
+        <div class="card-grid">
+          <div class="glass premium-card card-3d">
+            <span class="card-label">System Pulse</span>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px;">
+              <div>
+                <div style="font-size:24px; font-weight:800; color:#10b981;">Stable</div>
+                <div style="font-size:12px; color:var(--text-secondary);">Core Latency: 12ms</div>
+              </div>
+              <div class="logo-icon" style="background:var(--primary); box-shadow:0 0 15px var(--primary);"><i
+                  class="fas fa-bolt"></i></div>
+            </div>
+          </div>
+
+          <div class="glass premium-card card-3d">
+            <span class="card-label">Intelligence Yield</span>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px;">
+              <div>
+                <div style="font-size:24px; font-weight:800;" id="home-interactions">1,280</div>
+                <div style="font-size:12px; color:var(--text-secondary);">Queries processed</div>
+              </div>
+              <i class="fas fa-brain" style="font-size:30px; opacity:0.3;"></i>
+            </div>
+          </div>
+
+          <div class="glass premium-card card-3d">
+            <span class="card-label">Environmental Sync</span>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px;">
+              <div>
+                <div style="font-size:24px; font-weight:800;">22°C</div>
+                <div style="font-size:12px; color:var(--text-secondary);">Cloudy · London</div>
+              </div>
+              <i class="fas fa-cloud-sun" style="font-size:30px; opacity:0.3;"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass premium-card card-3d" style="margin-top:30px;">
+          <h3 style="margin-bottom:20px;"><i class="fas fa-terminal" style="color:var(--primary);"></i> Command Center
+          </h3>
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px;">
+            <button class="glass sm-btn" onclick="generateAutomation('Optimize PC Performance')">
+              <i class="fas fa-gauge-high"></i> Optimize System
+            </button>
+            <button class="glass sm-btn" onclick="generateAutomation('Clean Temp Files')">
+              <i class="fas fa-broom"></i> Deep Clean
+            </button>
+            <button class="glass sm-btn" onclick="generateAutomation('Analyze Storage')">
+              <i class="fas fa-hdd"></i> Space Audit
+            </button>
+            <button class="glass sm-btn" onclick="generateAutomation('Network Shield')">
+              <i class="fas fa-shield-halved"></i> Security Sync
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- AI Chat — Split Panel with Live Preview -->
+      <section id="tool-chat" class="tool-panel">
+
+        <!-- LEFT: Conversation Panel -->
+        <div id="chat-left">
+          <div class="chat-container">
+            <div class="chat-messages" id="chat-messages">
+              <div class="ai-welcome">
+                <div class="bot-visual">
+                  <div class="glass card-3d"
+                    style="width:120px; height:120px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 24px; box-shadow:0 10px 40px rgba(139,92,246,0.3); border:2px solid rgba(139,92,246,0.3); overflow:hidden;">
+                    <img src="assets/bot-avatar.png" alt="NexusAI Bot"
+                      style="width:100%; height:100%; object-fit:cover;"
+                      onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\'fas fa-robot\' style=\'font-size:48px; color:var(--primary);\'></i>'">
+                  </div>
+                </div>
+                <h2 class="text-3d" style="font-size:2rem; margin-bottom:10px;">Hello! I'm NexusAI.</h2>
+                <p style="max-width:420px; margin:0 auto 24px; font-size:14px; color:var(--text-secondary);">Ask me
+                  anything, or let me build you a complete website or app!</p>
+                <div class="suggestion-chips">
+                  <button class="chip"
+                    onclick="sendMessage('Build me a beautiful landing page for a SaaS app', true)">🌐 Build a
+                    Website</button>
+                  <button class="chip"
+                    onclick="sendMessage('Create an interactive to-do app with local storage', true)">📱 Create an
+                    App</button>
+                  <button class="chip" onclick="sendMessage('Write a Python script to scrape a website', true)">🐍 Write
+                    Code</button>
+                  <button class="chip" onclick="sendMessage('Explain quantum computing simply', true)">💡 Explain a
+                    Concept</button>
+                </div>
+              </div>
+            </div>
+
+            <div id="vision-preview-container" class="glass"
+              style="display:none; margin:0 20px 10px; padding:10px; border-radius:15px; align-items:center; gap:12px;">
+              <div id="vision-thumbnail"
+                style="width:50px; height:50px; border-radius:10px; background-size:cover; background-position:center; border:1px solid var(--border);">
+              </div>
+              <div style="flex:1; font-size:12px; color:var(--text-secondary);">Image ready for analysis</div>
+              <button class="glass sm-btn" onclick="clearVisionImage()"><i class="fas fa-times"></i></button>
+            </div>
+
+            <div class="chat-input-area">
+              <div class="chat-input-wrapper glass">
+                <button class="glass agent-toggle-btn" onclick="toggleAgentPanel()" title="Select AI Persona">
+                  <i class="fas fa-robot" id="active-agent-icon" style="color:var(--primary);"></i>
+                </button>
+                <button class="glass voice-btn" onclick="document.getElementById('vision-upload').click()"
+                  title="Upload Image for Analysis">
+                  <i class="fas fa-camera"></i>
+                </button>
+                <input type="file" id="vision-upload" accept="image/*" style="display:none;"
+                  onchange="handleVisionImage(this)">
+                <textarea id="chat-input"
+                  placeholder="Ask anything… or say 'Create a [website/app]' to get a live preview!"
+                  onkeydown="handleChatKey(event)" oninput="autoResize(this)"></textarea>
+                <button class="glass voice-btn" id="voice-trigger" title="Voice Input" onclick="toggleVoiceSession()">
+                  <i class="fas fa-microphone"></i>
+                </button>
+                <button class="glass voice-btn" id="knowledge-toggle" title="Sync Knowledge Base"
+                  onclick="toggleKnowledgeSync()">
+                  <i class="fas fa-brain"></i>
+                </button>
+                <button class="glass voice-btn" id="web-toggle" title="Search the Web" onclick="toggleWebSearch()">
+                  <i class="fas fa-globe"></i>
+                </button>
+                <button id="send-btn" class="send-btn" onclick="sendMessage()"><i
+                    class="fas fa-paper-plane"></i></button>
+              </div>
+              <div id="knowledge-status" class="knowledge-status"><i class="fas fa-sync fa-spin"></i> Analyzing
+                Knowledge Base...</div>
+
+              <!-- Voice Listening Overlay -->
+              <div id="voice-overlay" class="voice-overlay">
+                <div class="voice-pulse-container">
+                  <div class="pulse-ring"></div>
+                  <div class="pulse-ring"></div>
+                  <div class="pulse-center"><i class="fas fa-microphone"></i></div>
+                </div>
+                <div class="voice-transcript" id="voice-transcript">Listening for your master command...</div>
+                <button class="glass sm-btn" style="margin-top:40px;" onclick="stopVoiceSession()">Cancel</button>
+              </div>
+
+              <!-- Agent Selection Panel -->
+              <div id="agent-panel" class="glass agent-panel-overlay">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                  <h4 style="font-size:14px;">Select AI Persona</h4>
+                  <button class="primary-btn" style="padding:6px 12px; font-size:11px;" onclick="showCreateAgent()">+
+                    New</button>
+                </div>
+                <div id="agent-list" style="display:flex; flex-direction:column; gap:8px; overflow-y:auto;">
+                  <!-- Agents will load here -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Live Code Preview Panel -->
+        <div id="chat-preview"
+          style="display:flex; flex-direction:column; flex:1; min-width:0; min-height:0; border-radius:20px; overflow:hidden; border:1px solid var(--border); background:rgba(0,0,0,0.3);">
+          <!-- Preview toolbar -->
+          <div id="preview-toolbar"
+            style="display:flex; align-items:center; gap:10px; padding:10px 16px; background:rgba(0,0,0,0.4); border-bottom:1px solid var(--border); flex-shrink:0;">
+            <div style="display:flex; gap:6px;">
+              <div style="width:12px; height:12px; border-radius:50%; background:#ff5f56;"></div>
+              <div style="width:12px; height:12px; border-radius:50%; background:#ffbd2e;"></div>
+              <div style="width:12px; height:12px; border-radius:50%; background:#27c93f;"></div>
+            </div>
+            <div id="preview-url"
+              style="flex:1; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:8px; padding:5px 12px; font-size:12px; color:var(--text-secondary);">
+              NexusAI Live Preview</div>
+            <button id="preview-refresh-btn" onclick="refreshPreview()" class="glass"
+              style="padding:5px 12px; border-radius:8px; font-size:11px; cursor:pointer; border:none; color:var(--text-secondary);">
+              <i class="fas fa-rotate-right"></i>
+            </button>
+            <button onclick="openPreviewFullscreen()" class="glass"
+              style="padding:5px 12px; border-radius:8px; font-size:11px; cursor:pointer; border:none; color:var(--text-secondary);">
+              <i class="fas fa-expand"></i>
+            </button>
+            <button onclick="copyPreviewCode()" class="glass"
+              style="padding:5px 12px; border-radius:8px; font-size:11px; cursor:pointer; border:none; color:var(--text-secondary);">
+              <i class="fas fa-copy"></i>
+            </button>
+          </div>
+
+          <!-- Preview content area — switches between idle placeholder and iframe -->
+          <div id="preview-content" style="flex:1; min-height:0; position:relative; overflow:hidden;">
+            <!-- Idle state placeholder -->
+            <div id="preview-idle"
+              style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; color:var(--text-secondary); text-align:center; padding:40px;">
+              <div style="font-size:64px; margin-bottom:20px; opacity:0.2;">🖥️</div>
+              <h3 style="font-size:18px; font-weight:700; margin-bottom:10px; color:var(--text-primary);">Live Preview
+              </h3>
+              <p style="font-size:14px; max-width:280px; line-height:1.6;">Ask NexusAI to create a website, app, or any
+                code — it will appear here running live!</p>
+              <div
+                style="margin-top:24px; display:flex; flex-direction:column; gap:8px; font-size:12px; color:var(--text-secondary);">
+                <span>💡 Try: <em>"Build a calculator app"</em></span>
+                <span>💡 Try: <em>"Create a todo list with dark mode"</em></span>
+                <span>💡 Try: <em>"Make a landing page for my startup"</em></span>
+              </div>
+            </div>
+            <!-- Live preview iframe (hidden until code is generated) -->
+            <iframe id="preview-frame" style="display:none; width:100%; height:100%; border:none; background:white;"
+              sandbox="allow-scripts allow-same-origin allow-forms allow-modals"></iframe>
+          </div>
+
+          <!-- Code tabs (hidden until code appears) -->
+          <div id="preview-code-tabs"
+            style="display:none; flex-shrink:0; border-top:1px solid var(--border); padding:8px 16px; background:rgba(0,0,0,0.4); display:flex; gap:8px; align-items:center;">
+            <button id="tab-preview" onclick="setPreviewTab('preview')" class="glass"
+              style="padding:4px 14px; border-radius:8px; font-size:11px; cursor:pointer; border:none; color:var(--primary);">Preview</button>
+            <button id="tab-code" onclick="setPreviewTab('code')" class="glass"
+              style="padding:4px 14px; border-radius:8px; font-size:11px; cursor:pointer; border:none; color:var(--text-secondary);">Code</button>
+            <div style="margin-left:auto; font-size:11px; color:var(--text-secondary);" id="preview-lang-badge"></div>
+          </div>
+
+          <!-- Code view (hidden) -->
+          <div id="preview-code-view" style="display:none; flex:1; min-height:0; overflow:auto; background:#0a0a0f;">
+            <pre id="preview-code-pre"
+              style="padding:20px; font-size:12px; line-height:1.6; font-family:monospace; color:#e2e8f0; white-space:pre-wrap; word-break:break-all; margin:0;"></pre>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Library Panel -->
+      <section id="tool-library" class="tool-panel">
+        <div style="display:flex; flex-direction:column; gap:24px; height:100%;">
+          <div id="library-list" class="card-grid" style="overflow-y:auto; padding-bottom:40px;">
+            <!-- Library items here -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Workspaces Panel -->
+      <section id="tool-workspaces" class="tool-panel">
+        <div id="workspace-grid" class="card-grid" style="overflow-y:auto; padding-bottom:40px;">
+          <!-- Workspaces here -->
+        </div>
+      </section>
+
+      <!-- Content Writer -->
+      <section id="tool-writer" class="tool-panel">
+        <div class="card-grid">
+          <div class="glass premium-card card-3d">
+            <span class="card-label">Configuration</span>
+            <div class="form-group">
+              <label>Content Type</label>
+              <select id="content-type">
+                <option value="blog">Blog Post</option>
+                <option value="social">Social Media post</option>
+                <option value="email">Marketing Email</option>
+                <option value="ad">Ad Copy</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Tone of Voice</label>
+              <div style="display:flex; gap:8px;">
+                <button class="chip tone-btn active" onclick="setTone(this, 'professional')">Professional</button>
+                <button class="chip tone-btn" onclick="setTone(this, 'casual')">Casual</button>
+                <button class="chip tone-btn" onclick="setTone(this, 'creative')">Creative</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Topic or Keywords</label>
+              <textarea id="writer-topic" style="height:120px;"
+                placeholder="Describe what you want me to write about..."></textarea>
+            </div>
+            <div class="form-group">
+              <label>Target Length</label>
+              <input type="number" id="content-length" value="500">
+            </div>
+            <button class="primary-btn" onclick="generateContent()"><i class="fas fa-sparkles"></i> Generate
+              Content</button>
+          </div>
+
+          <div class="glass premium-card card-3d">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+              <span class="card-label">AI Output</span>
+              <div style="display:flex; gap:8px;">
+                <button class="glass sm-btn" onclick="copyOutput()"><i class="fas fa-copy"></i> Copy</button>
+                <button class="glass sm-btn" onclick="regenerateContent()"><i class="fas fa-rotate-right"></i></button>
+              </div>
+            </div>
+            <div id="writer-output" class="output-box">Your AI-generated content will appear here...</div>
+            <div style="margin-top:16px; font-size:12px; color:var(--text-secondary);" id="word-count">0 words generated
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Image Prompt Template -->
+      <section id="tool-image" class="tool-panel">
+        <div class="card-grid">
+          <div class="glass premium-card card-3d">
+            <span class="card-label">Prompt Builder</span>
+            <div class="form-group">
+              <label>Main Concept</label>
+              <textarea id="image-concept" style="height:120px;"
+                placeholder="e.g. A cyberpunk samurai in neo-tokyo..."></textarea>
+            </div>
+            <div class="form-group">
+              <label>Artistic Style</label>
+              <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                <button class="chip style-btn active" onclick="setStyle(this, 'photorealistic')">Photorealistic</button>
+                <button class="chip style-btn" onclick="setStyle(this, 'anime')">Anime</button>
+                <button class="chip style-btn" onclick="setStyle(this, 'oil painting')">Oil Painting</button>
+                <button class="chip style-btn" onclick="setStyle(this, '3d render')">3D Render</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Target Platform</label>
+              <select id="img-platform">
+                <option value="Midjourney">Midjourney</option>
+                <option value="DALL·E 3">DALL·E 3</option>
+                <option value="Stable Diffusion">Stable Diffusion</option>
+              </select>
+            </div>
+            <button class="primary-btn" onclick="generateImagePrompt()" style="margin-bottom:12px;"><i
+                class="fas fa-magic"></i> Craft Prompts</button>
+            <button class="primary-btn" style="background:linear-gradient(135deg, #ec4899, #8b5cf6);"
+              onclick="generateRealImage()"><i class="fas fa-image"></i> Render Real Image</button>
+          </div>
+          <div class="glass premium-card card-3d" style="overflow-y:auto; max-height:calc(100vh - 200px);">
+            <span class="card-label">Generated Output</span>
+            <div id="image-output-container" style="display:flex; flex-direction:column; gap:16px;">
+              <div id="prompt-results">
+                <div style="text-align:center; padding:40px; color:var(--text-secondary);">
+                  <i class="fas fa-magic" style="font-size:40px; margin-bottom:16px; opacity:0.3;"></i>
+                  <p>Generated prompts and images will appear here</p>
+                </div>
+              </div>
+              <div id="real-image-result" style="display:none; text-align:center;"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Code Helper -->
+      <section id="tool-code" class="tool-panel">
+        <div class="card-grid">
+          <div class="glass premium-card card-3d">
+            <span class="card-label">Developer Console</span>
+            <div class="form-group">
+              <label>Language</label>
+              <select id="code-lang">
+                <option value="Python">Python (AI, Data Science, Backend script)</option>
+                <option value="JavaScript">JavaScript (Web interactives, Node.js)</option>
+                <option value="TypeScript">TypeScript (Typed JS for large apps)</option>
+                <option value="HTML/CSS/JS">HTML / TailWind / JS (Frontend UI)</option>
+                <option value="React">React (Frontend Framework components)</option>
+                <option value="Node.js">Node.js (Backend execution)</option>
+                <option value="Java">Java (Enterprise backend, Android)</option>
+                <option value="C++">C++ (High performance, Game dev, Systems)</option>
+                <option value="C#">C# (Windows apps, Unity gaming, Backend)</option>
+                <option value="C">C (Embedded systems, OS, Low-level)</option>
+                <option value="Go">Go / Golang (Cloud services, Microservices)</option>
+                <option value="Rust">Rust (Memory-safe high performance systems)</option>
+                <option value="PHP">PHP (Classic web backend, WordPress)</option>
+                <option value="Ruby">Ruby (Ruby on Rails, Web startups)</option>
+                <option value="Swift">Swift (iOS / macOS native apps)</option>
+                <option value="Kotlin">Kotlin (Modern Android development)</option>
+                <option value="SQL">SQL (Database queries and management)</option>
+                <option value="NoSQL">NoSQL / MongoDB (Document DB operations)</option>
+                <option value="Dart">Dart / Flutter (Cross-platform mobile apps)</option>
+                <option value="R">R (Statistical computing and graphics)</option>
+                <option value="Shell">Bash / Shell Script (Linux automation)</option>
+                <option value="PowerShell">PowerShell (Windows system automation)</option>
+                <option value="Solidity">Solidity (Ethereum Smart Contracts)</option>
+                <option value="Scala">Scala (Big data, Spark applications)</option>
+                <option value="Haskell">Haskell (Pure functional programming)</option>
+                <option value="Lua">Lua (Game scripting, Roblox)</option>
+                <option value="Perl">Perl (Legacy text processing automation)</option>
+                <option value="Assembly">Assembly (Hardware-level architectures)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Task Description</label>
+              <textarea id="code-prompt" style="height:140px;"
+                placeholder="e.g. Create a recursive function to find..."></textarea>
+            </div>
+            <button class="primary-btn" onclick="generateCode()"><i class="fas fa-terminal"></i> Execute AI
+              Command</button>
+          </div>
+          <div class="glass premium-card card-3d">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+              <span class="card-label">Code Output</span>
+              <button class="glass sm-btn" onclick="copyCode()"><i class="fas fa-copy"></i> Copy Code</button>
+            </div>
+            <pre id="code-output" class="output-box"
+              style="font-family:monospace; background:#0a0a0a;">// Your code will appear here...</pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- SEO Optimizer -->
+      <section id="tool-seo" class="tool-panel">
+        <div class="card-grid">
+          <div class="glass premium-card card-3d">
+            <span class="card-label">SEO Analysis</span>
+            <div class="form-group">
+              <label>Target Keyword</label>
+              <input type="text" id="seo-keyword" placeholder="e.g. AI SaaS Marketing">
+            </div>
+            <div class="form-group">
+              <label>Content to Analyze</label>
+              <textarea id="seo-content" style="height:200px;"
+                placeholder="Paste your article or copy here..."></textarea>
+            </div>
+            <button class="primary-btn" onclick="analyzeSEO()"><i class="fas fa-search-dollar"></i> Run SEO
+              Check</button>
+          </div>
+          <div class="glass premium-card card-3d">
+            <span class="card-label">Optimization Insights</span>
+            <div id="seo-results" class="output-box">
+              <div style="text-align:center; padding:40px; color:var(--text-secondary);">
+                <i class="fas fa-chart-line" style="font-size:40px; margin-bottom:16px; opacity:0.3;"></i>
+                <p>AI-driven SEO metrics will appear here</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Document AI — Full-Width Studio Layout -->
+      <section id="tool-docs" class="tool-panel">
+
+        <!-- Top bar -->
+        <div
+          style="display:flex; align-items:center; justify-content:space-between; padding-bottom:20px; flex-shrink:0;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div
+              style="background:linear-gradient(135deg,#8b5cf6,#d946ef); width:42px; height:42px; border-radius:14px; display:flex; align-items:center; justify-content:center; box-shadow:0 0 20px rgba(139,92,246,0.5);">
+              <i class="fas fa-brain" style="font-size:18px;"></i>
+            </div>
+            <div>
+              <div style="font-size:16px; font-weight:800;">Document Intelligence Studio</div>
+              <div style="font-size:12px; color:var(--text-secondary);">Upload a PDF, DOCX, or TXT — get AI analysis +
+                page previews</div>
+            </div>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="glass sm-btn" style="padding:10px 16px;" onclick="copyDocAnalysis()"><i
+                class="fas fa-copy"></i> Copy</button>
+            <button class="primary-btn" style="padding:10px 16px;" onclick="exportDocData('csv')"><i
+                class="fas fa-file-csv"></i> Export CSV</button>
+            <button class="glass sm-btn" style="padding:10px 16px;" onclick="saveDocToLibrary()"><i
+                class="fas fa-bookmark"></i> Save</button>
+          </div>
+        </div>
+
+        <!-- 3-Column Studio -->
+        <div id="doc-studio" style="display:grid; grid-template-columns:300px 1fr 1fr; gap:20px; flex:1; min-height:0;">
+
+          <!-- Column 1: Upload & Options -->
+          <div class="glass card-3d"
+            style="border-radius:20px; padding:24px; display:flex; flex-direction:column; gap:16px; overflow-y:auto;">
+            <div class="card-label">📁 Upload Document</div>
+
+            <div id="drop-zone" class="drop-zone" onclick="document.getElementById('doc-upload').click()"
+              id="doc-dropzone"
+              style="padding:30px 16px; border-radius:16px; text-align:center; cursor:pointer; border:2px dashed var(--border); transition:0.3s;"
+              ondragover="event.preventDefault(); this.style.borderColor='var(--primary)';"
+              ondragleave="this.style.borderColor='var(--border)';" ondrop="handleDocDrop(event)">
+              <i class="fas fa-cloud-upload-alt"
+                style="font-size:36px; color:var(--primary); margin-bottom:12px; display:block;"></i>
+              <p style="font-size:13px; color:var(--text-secondary);">Click or drag & drop</p>
+              <p style="font-size:11px; color:var(--text-secondary); margin-top:4px;">PDF, DOCX, TXT</p>
+              <p id="file-name"
+                style="font-size:12px; color:var(--primary); margin-top:10px; display:none; font-weight:700;"></p>
+              <input type="file" id="doc-upload" hidden accept=".pdf,.docx,.txt,.pptx"
+                onchange="handleFileSelect(this)">
+            </div>
+
+            <div class="form-group">
+              <label>Analysis Request</label>
+              <textarea id="doc-prompt" style="height:100px; resize:vertical;"
+                placeholder="e.g. Summarize key points, find risks, extract data..."></textarea>
+            </div>
+
+            <button class="primary-btn" onclick="analyzeDocument()" id="analyze-btn"
+              style="background:linear-gradient(135deg,#8b5cf6,#d946ef);">
+              <i class="fas fa-microscope"></i> Analyze Document
+            </button>
+
+            <!-- File stats (populated after upload) -->
+            <div id="doc-stats"
+              style="display:none; background:rgba(139,92,246,0.05); border:1px solid rgba(139,92,246,0.2); border-radius:12px; padding:14px; font-size:12px; color:var(--text-secondary);">
+              <div id="doc-stat-name" style="font-weight:700; color:var(--text-primary); margin-bottom:6px;"></div>
+              <div id="doc-stat-pages"></div>
+              <div id="doc-stat-chars"></div>
+            </div>
+          </div>
+
+          <!-- Column 2: Page Previews -->
+          <div class="glass"
+            style="border-radius:20px; padding:20px; display:flex; flex-direction:column; overflow:hidden;">
+            <div class="card-label" style="margin-bottom:16px; flex-shrink:0;">🖼️ Document Pages</div>
+            <div id="doc-pages-grid"
+              style="flex:1; min-height:0; overflow-y:auto; display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:12px; align-content:start;">
+              <!-- Placeholder -->
+              <div id="doc-pages-placeholder"
+                style="grid-column:1/-1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px 20px; color:var(--text-secondary); text-align:center;">
+                <i class="fas fa-file-alt" style="font-size:48px; opacity:0.15; margin-bottom:16px;"></i>
+                <p style="font-size:13px;">Page previews will appear here after uploading a PDF</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 3: AI Analysis Output -->
+          <div class="glass"
+            style="border-radius:20px; padding:20px; display:flex; flex-direction:column; overflow:hidden;">
+            <div class="card-label" style="margin-bottom:16px; flex-shrink:0;">🧠 AI Deep Analysis</div>
+            <div id="doc-output"
+              style="flex:1; min-height:0; overflow-y:auto; font-size:14px; line-height:1.7; color:var(--text-primary);">
+              <div
+                style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; color:var(--text-secondary); text-align:center; padding:20px;">
+                <i class="fas fa-brain" style="font-size:48px; opacity:0.15; margin-bottom:16px;"></i>
+                <p>AI analysis will stream here after you run the document<br>through our intelligence engine.</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Audio AI — Transcription Studio -->
+      <section id="tool-audio" class="tool-panel">
+        <div class="card-grid">
+          <div class="glass premium-card card-3d">
+            <span class="card-label">🎙️ Audio Transcription</span>
+            <div id="audio-drop-zone" class="drop-zone" onclick="document.getElementById('audio-upload').click()"
+              style="padding:40px 20px; border-radius:24px; border:2px dashed var(--border); transition:0.3s;">
+              <i class="fas fa-microphone-lines" style="font-size:40px; margin-bottom:15px; color:var(--primary);"></i>
+              <p style="font-size:14px; font-weight:600;">Drop audio file here</p>
+              <p style="font-size:12px; color:var(--text-secondary); margin-top:4px;">MP3, WAV, M4A supported</p>
+              <input type="file" id="audio-upload" hidden accept="audio/*" onchange="handleAudioUpload(this)">
+            </div>
+            <div id="audio-file-info"
+              style="display:none; padding:15px; background:rgba(139,92,246,0.1); border-radius:12px; border:1px solid rgba(139,92,246,0.2);">
+              <div style="font-size:13px; font-weight:700; color:var(--text-primary);" id="audio-name"></div>
+              <div style="font-size:11px; color:var(--text-secondary);" id="audio-size"></div>
+            </div>
+            <button id="transcribe-btn" class="primary-btn" onclick="runTranscription()" style="display:none;">
+              <i class="fas fa-waveform-path"></i> Transcribe Audio
+            </button>
+          </div>
+
+          <div class="glass premium-card card-3d">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+              <span class="card-label">📄 Extracted Text</span>
+              <button class="glass sm-btn" onclick="copyAudioTranscript()"><i class="fas fa-copy"></i> Copy</button>
+            </div>
+            <div id="audio-output" class="output-box" style="font-size:14px; line-height:1.7;">Transcription results
+              will appear here...</div>
+            <div style="margin-top:16px; display:flex; gap:12px;">
+              <button class="glass sm-btn" onclick="summarizeAudio()"><i class="fas fa-compress-alt"></i>
+                Summarize</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Modals -->
+  <div id="upgrade-modal" class="modal-overlay" onclick="if(event.target === this) hideUpgrade()">
+    <div class="modal-content glass">
+      <button class="close-modal" onclick="hideUpgrade()"><i class="fas fa-times"></i></button>
+      <h2 class="text-3d" style="font-size:2.5rem; margin-bottom:12px;">Unleash Your Full Potential 🚀</h2>
+      <div class="pricing-grid">
+        <!-- Pricing cards -->
+        <div class="pricing-card glass">
+          <h3>Starter</h3>
+          <p class="price">$9</p><button class="primary-btn" onclick="choosePlan('starter')">Choose</button>
+        </div>
+        <div class="pricing-card glass active">
+          <h3>Pro</h3>
+          <p class="price">$29</p><button class="primary-btn" onclick="choosePlan('pro')">Get Pro</button>
+        </div>
+        <div class="pricing-card glass">
+          <h3>Business</h3>
+          <p class="price">$99</p><button class="primary-btn" onclick="choosePlan('business')">Choose</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="settings-modal" class="modal-overlay" onclick="if(event.target === this) hideSettings()">
+    <div class="modal-content glass" style="max-width:550px;">
+      <button class="close-modal" onclick="hideSettings()"><i class="fas fa-times"></i></button>
+      <h2 style="margin-bottom:24px;"><i class="fas fa-cog"></i> Platform Settings</h2>
+
+      <div id="settings-tabs"
+        style="display:flex; gap:10px; margin-bottom:20px; border-bottom:1px solid var(--border); padding-bottom:12px;">
+        <button class="glass sm-btn active" onclick="showSettingsTab('profile')">Profile</button>
+        <button class="glass sm-btn" onclick="showSettingsTab('memory')">Nexus Memory</button>
+        <button class="glass sm-btn" onclick="showSettingsTab('developer')">Developer (API Keys)</button>
+        <a href="admin.html" class="glass sm-btn" style="color:var(--primary); text-decoration:none;"><i
+            class="fas fa-shield-halved"></i> Admin Panel</a>
+      </div>
+
+      <div id="tab-profile" class="settings-tab-content">
+        <div class="form-group"><label>Display Name</label><input type="text" id="settings-name"></div>
+        <button class="primary-btn" onclick="saveSettings()">Save Changes</button>
+      </div>
+
+      <div id="tab-memory" class="settings-tab-content" style="display:none;">
+        <p style="font-size:12px; color:var(--text-secondary); margin-bottom:16px;">
+          Configure your personal AI preferences. These settings are stored in your Nexus Memory.
+        </p>
+        <div class="form-group">
+          <label>Preferred Coding Language</label>
+          <select id="pref-lang">
+            <option value="JavaScript / React">JavaScript / React</option>
+            <option value="Python">Python</option>
+            <option value="HTML / CSS">HTML / CSS</option>
+            <option value="SQL">SQL</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Industry Context</label>
+          <input type="text" id="pref-industry" placeholder="e.g. Fintech, Healthcare, E-commerce">
+        </div>
+        <div class="form-group">
+          <label>AI Response Tone</label>
+          <select id="pref-tone">
+            <option value="professional">Professional & Technical</option>
+            <option value="creative">Creative & Enthusiastic</option>
+            <option value="concise">Concise & Direct</option>
+          </select>
+        </div>
+        <button class="primary-btn" onclick="savePreferences()">Sync to memory</button>
+      </div>
+      <p style="font-size:12px; color:var(--text-secondary); margin-bottom:16px;">
+        Use API keys to access NexusAI Universal Assistant from your external applications.
+      </p>
+      <div class="glass" style="padding:16px; border-radius:12px; margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <span style="font-size:11px; font-weight:700;">ACTIVE API KEY</span>
+          <button class="glass sm-btn" onclick="generateAPIKey()" style="font-size:10px;">+ Generate New</button>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <input type="password" id="api-key-display" value="nexus_sk_live_****************" readonly
+            style="flex:1; font-family:monospace; font-size:12px;">
+          <button class="glass sm-btn" onclick="toggleKeyVisibility()"><i class="fas fa-eye"></i></button>
+          <button class="glass sm-btn" onclick="copyAPIKey()"><i class="fas fa-copy"></i></button>
+        </div>
+      </div>
+      <div style="font-size:11px; color:#ef4444;"><i class="fas fa-exclamation-triangle"></i> Keep your keys secret.
+        Never share them or expose them in client-side code.</div>
+    </div>
+  </div>
+  </div>
+
+  <div id="notifications-modal" class="modal-overlay" onclick="if(event.target === this) hideNotifications()">
+    <div class="modal-content glass" style="max-width:450px;">
+      <button class="close-modal" onclick="hideNotifications()"><i class="fas fa-times"></i></button>
+      <h3><i class="fas fa-bell"></i> Notifications</h3>
+      <div id="notifications-list" style="margin-top:20px;">
+        <div class="glass" style="padding:16px; border-radius:16px; border-left:4px solid var(--primary);">
+          <p>System Update: Image Generation now powered by Pollinations AI for better quality.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="upgrade-modal" class="glass"
+    style="display:none; position:fixed; inset:0; z-index:9999; justify-content:center; align-items:center; background:rgba(0,0,0,0.85);">
+    <div
+      style="background:rgba(10,10,15,0.95); padding:50px; border-radius:32px; border:1px solid var(--border); width:90%; max-width:900px; position:relative; box-shadow:0 20px 60px rgba(0,0,0,0.8);">
+      <button onclick="document.getElementById('upgrade-modal').style.display='none'"
+        style="position:absolute; top:24px; right:24px; background:rgba(255,255,255,0.05); border:1px solid var(--border); color:var(--text-secondary); cursor:pointer; font-size:20px; width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; transition:0.3s;"><i
+          class="fas fa-times"></i></button>
+      <div style="text-align:center; margin-bottom:40px;">
+        <i class="fas fa-gem"
+          style="font-size:40px; color:var(--accent); margin-bottom:20px; filter:drop-shadow(0 0 20px var(--accent));"></i>
+        <h2 class="text-3d" style="font-size:36px; margin-bottom:12px; font-weight:800; letter-spacing:-1px;">Nexus
+          Premium</h2>
+        <p style="color:var(--text-secondary); font-size:16px;">Step into the future with limitless intelligence.</p>
+      </div>
+
+      <div id="plans-container"
+        style="display:grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:24px;">
+        <div style="grid-column: 1 / -1; text-align:center; color:var(--text-secondary);">Loading premium tiers... <i
+            class="fas fa-circle-notch fa-spin"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast">✅ Action Successful</div>
+
+  <!-- Mobile Navigation Bar -->
+  <nav class="mobile-nav">
+    <a class="mob-nav-item active" data-tool="home" onclick="switchTool('home')">
+      <i class="fas fa-house-chimney"></i>
+      <span>Home</span>
+    </a>
+    <a class="mob-nav-item" data-tool="chat" onclick="switchTool('chat')">
+      <i class="fas fa-comment-dots"></i>
+      <span>Chat</span>
+    </a>
+    <a class="mob-nav-item" data-tool="library" onclick="switchTool('library')">
+      <i class="fas fa-folder-open"></i>
+      <span>Library</span>
+    </a>
+    <a class="mob-nav-item" data-tool="image" onclick="switchTool('image')">
+      <i class="fas fa-wand-magic-sparkles"></i>
+      <span>Studio</span>
+    </a>
+    <a class="mob-nav-item" data-tool="audio" onclick="switchTool('audio')">
+      <i class="fas fa-microphone"></i>
+      <span>Voice</span>
+    </a>
+  </nav>
+
+  <script src="particles.js?v=6"></script>
+  <script src="app.js?v=6"></script>
+  <script>
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(reg => console.log('SW Registered!', reg))
+          .catch(err => console.log('SW Error:', err));
+      });
+    }
+  </script>
+</body>
+
+</html>
