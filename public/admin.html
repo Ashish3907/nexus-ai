@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexusAI | Admin Center</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --admin-bg: #050508;
+            --admin-accent: #10b981;
+            /* Emerald for growth */
+        }
+
+        body {
+            background: var(--admin-bg);
+            color: var(--text-primary);
+        }
+
+        .admin-sidebar {
+            width: 280px;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border);
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            padding: 30px;
+        }
+
+        .admin-main {
+            margin-left: 280px;
+            padding: 40px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+            transition: 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+        }
+
+        .stat-card i {
+            font-size: 32px;
+            color: var(--primary);
+            opacity: 0.5;
+            position: absolute;
+            right: 20px;
+            top: 20px;
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 900;
+            margin: 10px 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .health-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .health-online {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .growth-chart {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            padding: 30px;
+            margin-top: 40px;
+        }
+
+        .chart-bar {
+            height: 10px;
+            background: var(--primary);
+            border-radius: 5px;
+            margin-top: 5px;
+            transition: 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            width: 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table th {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .data-table tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .action-select {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 8px;
+            outline: none;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .action-select:focus {
+            border-color: var(--primary);
+        }
+
+        #toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 16px 24px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 10000;
+            animation: slideIn 0.3s;
+        }
+
+        .view-section {
+            display: none;
+        }
+
+        .view-section.active {
+            display: block;
+            animation: fade 0.4s ease;
+        }
+
+        @keyframes fade {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="admin-sidebar glass">
+        <div class="logo" style="margin-bottom: 50px;">
+            <div class="logo-icon"><i class="fas fa-terminal"></i></div>
+            <span class="logo-text">AdminCenter</span>
+        </div>
+        <div class="nav-section">
+            <a href="#" class="nav-item active" onclick="switchView('dashboard', this)"><i
+                    class="fas fa-chart-line"></i> Dashboard</a>
+            <a href="#" class="nav-item" onclick="switchView('users', this)"><i class="fas fa-users"></i> Users</a>
+            <a href="#" class="nav-item"><i class="fas fa-database"></i> System Logs</a>
+            <a href="#" class="nav-item"><i class="fas fa-key"></i> API Keys</a>
+            <div style="margin-top: 40px; height: 1px; background: var(--border);"></div>
+            <a href="index.html" class="nav-item"><i class="fas fa-arrow-left"></i> Exit Admin</a>
+        </div>
+    </div>
+
+    <main class="admin-main">
+        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
+            <div>
+                <h1 class="text-3d" style="font-size: 2.5rem; margin-bottom: 5px;">Platform Intelligence</h1>
+                <p style="color: var(--text-secondary);">Enterprise monitoring & user management</p>
+            </div>
+            <div class="glass"
+                style="padding: 10px 20px; border-radius: 15px; display: flex; align-items: center; gap: 15px;">
+                <span style="font-size: 13px;">System Pulse:</span>
+                <span class="health-badge health-online">Stable</span>
+            </div>
+        </header>
+
+        <!-- DASHBOARD VIEW -->
+        <div id="view-dashboard" class="view-section active">
+            <div class="stats-grid" id="stats-container">
+                <!-- Stats will load here -->
+            </div>
+
+            <div class="growth-chart glass">
+                <h3 style="margin-bottom: 25px;"><i class="fas fa-rocket"></i> User Growth — Last 7 Days</h3>
+                <div id="growth-container">
+                    <!-- Growth bars will load here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- USERS VIEW -->
+        <div id="view-users" class="view-section">
+            <div class="glass" style="padding:30px; border-radius:30px;">
+                <h3 style="margin-bottom: 20px;"><i class="fas fa-users-cog"></i> User Management</h3>
+                <div style="overflow-x: auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Credits</th>
+                                <th>Joined</th>
+                                <th>Active Plan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-tbody">
+                            <!-- Users will inject here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="toast">✅ Action Successful</div>
+
+    <script src="particles.js"></script>
+    <script>
+        const token = localStorage.getItem('nexus_token');
+        if (!token) window.location.href = 'login.html';
+
+        function showToast(msg, isError = false) {
+            const t = document.getElementById('toast');
+            t.textContent = (isError ? '❌ ' : '✅ ') + msg;
+            t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 3000);
+        }
+
+        function switchView(viewId, btn) {
+            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+            document.getElementById('view-' + viewId).classList.add('active');
+
+            if (viewId === 'users') loadUsers();
+            if (viewId === 'dashboard') fetchStats();
+        }
+
+        async function fetchStats() {
+            try {
+                const res = await fetch('/api/admin/stats', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                renderStats(data);
+                if (data.userGrowth) renderGrowth(data.userGrowth);
+            } catch (err) { console.error('Failed to fetch admin stats:', err); }
+        }
+
+        function renderStats(data) {
+            const container = document.getElementById('stats-container');
+            const items = [
+                { label: 'Total AI Interactions', value: data.totalMessages || 0, icon: 'fa-comment-alt' },
+                { label: 'Active Workspaces', value: data.totalWorkspaces || 0, icon: 'fa-project-diagram' },
+                { label: 'Custom Agents Trained', value: data.totalAgents || 0, icon: 'fa-robot' },
+                { label: 'Storage Usage', value: data.totalAssets || 0, icon: 'fa-hdd' }
+            ];
+
+            container.innerHTML = items.map(item => `
+                <div class="stat-card glass">
+                    <i class="fas ${item.icon}"></i>
+                    <div class="stat-label">${item.label}</div>
+                    <div class="stat-value counter">${item.value}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderGrowth(growth) {
+            const container = document.getElementById('growth-container');
+            const max = Math.max(...growth.map(g => g.users));
+
+            container.innerHTML = growth.map(g => `
+                <div style="margin-bottom: 20px;">
+                    <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:5px;">
+                        <span>${g.date}</span>
+                        <span style="font-weight:700;">${g.users} users</span>
+                    </div>
+                    <div style="background:rgba(255,255,255,0.05); height:10px; border-radius:5px;">
+                        <div class="chart-bar" style="width: ${(g.users / max) * 100}%"></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function loadUsers() {
+            try {
+                const res = await fetch('/api/admin/users', { headers: { 'Authorization': `Bearer ${token}` } });
+                const users = await res.json();
+                const tbody = document.getElementById('users-tbody');
+
+                tbody.innerHTML = users.map(u => `
+                    <tr>
+                        <td><strong>${u.name}</strong></td>
+                        <td style="color:var(--text-secondary);">${u.email}</td>
+                        <td style="font-family:monospace;">${u.credits.toLocaleString()}</td>
+                        <td style="font-size:12px;">${new Date(u.createdAt).toLocaleDateString()}</td>
+                        <td>
+                            <select class="action-select" onchange="updateUserPlan('${u.id}', this.value)" style="border-color:${u.plan === 'pro' ? 'var(--primary)' : 'var(--border)'}">
+                                <option value="free" ${u.plan === 'free' ? 'selected' : ''}>Free</option>
+                                <option value="starter" ${u.plan === 'starter' ? 'selected' : ''}>Starter</option>
+                                <option value="pro" ${u.plan === 'pro' ? 'selected' : ''}>Pro</option>
+                                <option value="business" ${u.plan === 'business' ? 'selected' : ''}>Business</option>
+                            </select>
+                        </td>
+                    </tr>
+                `).join('');
+
+            } catch (e) {
+                showToast('Failed to load users', true);
+            }
+        }
+
+        async function updateUserPlan(userId, plan) {
+            try {
+                const res = await fetch(`/api/admin/users/${userId}/plan`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ plan })
+                });
+
+                if (!res.ok) throw new Error('Update failed');
+                showToast(`User successfully upgraded to ${plan.toUpperCase()}`);
+                loadUsers(); // refresh data to show upgraded credit limits
+            } catch (e) {
+                showToast(e.message, true);
+            }
+        }
+
+        // Init
+        fetchStats();
+    </script>
+</body>
+
+</html>
