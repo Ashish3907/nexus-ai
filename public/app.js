@@ -829,16 +829,47 @@ function hideUpgrade() {
 }
 
 async function choosePlan(plan) {
-    showToast('💳 Setting up checkout...');
+    showToast('💳 Preparing secure payment...');
     try {
-        const data = await apiCall('/api/payments/checkout', { plan });
-        if (data?.url) {
-            window.location.href = data.url;
-        } else if (data?.demo) {
-            alert(data.message);
-        }
+        const data = await apiCall('/api/payments/razorpay-order', { plan });
+        if (!data || !data.order) throw new Error('Failed to setup order.');
+
+        const options = {
+            key: data.key_id,
+            amount: data.order.amount,
+            currency: data.order.currency,
+            name: "NexusAI Studio",
+            description: `Upgrade to ${plan.toUpperCase()} Plan`,
+            image: "assets/bot-avatar.png",
+            order_id: data.order.id,
+            handler: async function (response) {
+                showToast('⌛ Verifying payment...');
+                const verifyRes = await apiCall('/api/payments/razorpay-verify', {
+                    razorpay_order_id: response.razorpay_order_id,
+                    razorpay_payment_id: response.razorpay_payment_id,
+                    razorpay_signature: response.razorpay_signature,
+                    plan: plan
+                });
+
+                if (verifyRes && verifyRes.success) {
+                    showToast('✅ Upgrade Successful!');
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    showToast('❌ Verification failed.');
+                }
+            },
+            prefill: {
+                name: JSON.parse(localStorage.getItem('nexus_user'))?.name || '',
+                email: JSON.parse(localStorage.getItem('nexus_user'))?.email || ''
+            },
+            theme: { color: "#8b5cf6" }
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.open();
     } catch (err) {
         showToast('❌ ' + err.message);
+        console.error(err);
     }
 }
 
