@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexusAI | Access Your Studio</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            justify-content: center;
+            align-items: center;
+            overflow: auto;
+        }
+
+        .auth-layout {
+            display: flex;
+            width: 100%;
+            max-width: 1200px;
+            height: 800px;
+            margin: 40px;
+            border-radius: 40px;
+            overflow: hidden;
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.5);
+        }
+
+        .auth-visual {
+            flex: 1;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(0, 0, 0, 0.4));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px;
+            text-align: center;
+            position: relative;
+        }
+
+        .auth-visual img {
+            width: 400px;
+            filter: drop-shadow(0 0 30px var(--primary-glow));
+            animation: float 6s infinite ease-in-out;
+            z-index: 2;
+        }
+
+        .auth-bg-blob {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, var(--primary-glow), transparent 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+        }
+
+        .auth-form-container {
+            width: 450px;
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(40px);
+            padding: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border-left: 1px solid var(--border);
+        }
+
+        .tab-nav {
+            display: flex;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 6px;
+            border-radius: 14px;
+            margin-bottom: 40px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px var(--primary-glow);
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+            animation: slideUp 0.6s var(--transition);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .status-msg {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            display: none;
+        }
+
+        .status-msg.error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .status-msg.success {
+            background: rgba(16, 185, 129, 0.1);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .oauth-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        .oauth-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="mesh-bg"></div>
+
+    <div class="auth-layout glass">
+        <!-- Visual Section -->
+        <div class="auth-visual">
+            <div class="auth-bg-blob"></div>
+            <img src="assets/hero-3d.png" alt="NexusAI Visual">
+            <div style="z-index:2; margin-top:40px;">
+                <h2 style="font-size:32px; margin-bottom:12px; font-family:'Outfit';">NexusAI Studio</h2>
+                <p style="color:var(--text-secondary); max-width:400px; font-size:15px; line-height:1.6;">Your
+                    all-in-one AI workspace for creative and business excellence. Powered by the world's most advanced
+                    open models.</p>
+            </div>
+        </div>
+
+        <!-- Form Section -->
+        <div class="auth-form-container">
+            <div class="logo" style="margin-bottom:40px; justify-content:center;">
+                <div class="logo-icon"><i class="fas fa-bolt"></i></div>
+                <span class="logo-text">NexusAI</span>
+            </div>
+
+            <div class="tab-nav">
+                <button class="tab-btn active" onclick="switchTab('login')">Login</button>
+                <button class="tab-btn" onclick="switchTab('register')">Sign Up</button>
+            </div>
+
+            <!-- Login Form -->
+            <div id="login-form" class="auth-form active">
+                <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:24px;">
+                    <a href="/api/auth/google" class="oauth-btn"><i class="fab fa-google" style="color:#ea4335;"></i>
+                        Continue with Google</a>
+                    <a href="/api/auth/github" class="oauth-btn"><i class="fab fa-github"></i> Continue with GitHub</a>
+                </div>
+                <div
+                    style="display:flex; align-items:center; margin-bottom:24px; color:var(--text-secondary); font-size:12px;">
+                    <hr style="flex:1; border:none; border-top:1px solid var(--border);"><span style="margin:0 10px;">or
+                        sign in with email</span>
+                    <hr style="flex:1; border:none; border-top:1px solid var(--border);">
+                </div>
+                <div class="form-group">
+                    <label>EMAIL ADDRESS</label>
+                    <input type="text" id="login-email" placeholder="name@company.com">
+                </div>
+                <div class="form-group">
+                    <label>PASSWORD</label>
+                    <input type="password" id="login-pass" placeholder="••••••••"
+                        style="width:100%; background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:12px; padding:12px 16px; color:white; outline:none;">
+                </div>
+                <button class="primary-btn" style="width:100%;" onclick="handleAuth('login')">Sign In to
+                    Dashboard</button>
+            </div>
+
+            <!-- Register Form -->
+            <div id="register-form" class="auth-form">
+                <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:24px;">
+                    <a href="/api/auth/google" class="oauth-btn"><i class="fab fa-google" style="color:#ea4335;"></i>
+                        Register with Google</a>
+                    <a href="/api/auth/github" class="oauth-btn"><i class="fab fa-github"></i> Register with GitHub</a>
+                </div>
+                <div
+                    style="display:flex; align-items:center; margin-bottom:24px; color:var(--text-secondary); font-size:12px;">
+                    <hr style="flex:1; border:none; border-top:1px solid var(--border);"><span style="margin:0 10px;">or
+                        sign up with email</span>
+                    <hr style="flex:1; border:none; border-top:1px solid var(--border);">
+                </div>
+                <div class="form-group">
+                    <label>FULL NAME</label>
+                    <input type="text" id="reg-name" placeholder="John Doe">
+                </div>
+                <div class="form-group">
+                    <label>EMAIL ADDRESS</label>
+                    <input type="text" id="reg-email" placeholder="john@example.com">
+                </div>
+                <div class="form-group">
+                    <label>PASSWORD</label>
+                    <input type="password" id="reg-pass" placeholder="Create a strong password"
+                        style="width:100%; background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:12px; padding:12px 16px; color:white; outline:none;">
+                </div>
+                <button class="primary-btn" style="width:100%;" onclick="handleAuth('register')">Create Free
+                    Account</button>
+            </div>
+
+            <div id="status-msg" class="status-msg"></div>
+
+            <p style="text-align:center; color:var(--text-secondary); font-size:12px; margin-top:32px;">
+                By continuing, you agree to our Terms and Conditions.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Handle OAuth token redirect
+        window.addEventListener('DOMContentLoaded', async () => {
+            const hash = window.location.hash;
+            const search = window.location.search;
+
+            if (search.includes('error=')) {
+                const params = new URLSearchParams(search);
+                showMsg('Auth failed: ' + params.get('error'), 'error');
+            }
+
+            if (hash && hash.includes('token=')) {
+                const token = hash.replace('#token=', '');
+                localStorage.setItem('nexus_token', token);
+
+                // Fetch user info to populate state
+                try {
+                    const res = await fetch('/api/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
+                    if (res.ok) {
+                        const data = await res.json();
+                        localStorage.setItem('nexus_user', JSON.stringify(data.user));
+                        showMsg('OAuth Login Successful! Redirecting...', 'success');
+                        setTimeout(() => window.location.href = '/', 1000);
+                    }
+                } catch (e) { console.error(e); }
+            }
+        });
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+
+            const idx = tab === 'login' ? 0 : 1;
+            document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+            document.getElementById(`${tab}-form`).classList.add('active');
+        }
+
+        async function handleAuth(type) {
+            const msg = document.getElementById('status-msg');
+            msg.style.display = 'none';
+
+            const payload = type === 'login'
+                ? { email: document.getElementById('login-email').value, password: document.getElementById('login-pass').value }
+                : { name: document.getElementById('reg-name').value, email: document.getElementById('reg-email').value, password: document.getElementById('reg-pass').value };
+
+            if (!payload.email || !payload.password) {
+                showMsg('Please fill in all fields', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/auth/${type}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Auth failed');
+
+                showMsg(type === 'login' ? 'Welcome back! Redirecting...' : 'Account created! Redirecting...', 'success');
+                localStorage.setItem('nexus_token', data.token);
+                localStorage.setItem('nexus_user', JSON.stringify(data.user));
+
+                setTimeout(() => window.location.href = '/', 1200);
+            } catch (err) {
+                showMsg(err.message, 'error');
+            }
+        }
+
+        function showMsg(text, type) {
+            const msg = document.getElementById('status-msg');
+            msg.textContent = text;
+            msg.className = `status-msg ${type}`;
+            msg.style.display = 'block';
+        }
+    </script>
+</body>
+
+</html>
