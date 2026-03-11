@@ -821,25 +821,56 @@ function showNotifications() { document.getElementById('notifications-modal').cl
 function hideNotifications() { document.getElementById('notifications-modal').classList.remove('show'); }
 
 // ── Upgrade / Payments ─────────────────────────────────────────────────────
+let currentSelectedPlan = null;
+
 function showUpgrade() {
+    document.getElementById('pricing-view').style.display = 'block';
+    document.getElementById('payment-method-view').style.display = 'none';
+    document.getElementById('direct-upi-view').style.display = 'none';
     document.getElementById('upgrade-modal').classList.add('show');
 }
 function hideUpgrade() {
     document.getElementById('upgrade-modal').classList.remove('show');
 }
 
-async function choosePlan(plan) {
-    showToast('💳 Preparing secure payment...');
+function selectPlan(plan) {
+    currentSelectedPlan = plan;
+    const pricing = { starter: '₹799', pro: '₹2,499', business: '₹7,999' };
+    document.getElementById('selected-plan-name').textContent = plan.toUpperCase() + " Plan";
+    document.getElementById('display-amount').textContent = pricing[plan];
+
+    document.getElementById('pricing-view').style.display = 'none';
+    document.getElementById('payment-method-view').style.display = 'block';
+}
+
+function backToPricing() {
+    document.getElementById('pricing-view').style.display = 'block';
+    document.getElementById('payment-method-view').style.display = 'none';
+}
+
+function showDirectUPI() {
+    document.getElementById('payment-method-view').style.display = 'none';
+    document.getElementById('direct-upi-view').style.display = 'block';
+}
+
+function backToMethods() {
+    document.getElementById('payment-method-view').style.display = 'block';
+    document.getElementById('direct-upi-view').style.display = 'none';
+}
+
+async function payWithRazorpay() {
+    const plan = currentSelectedPlan;
+    showToast('💳 Preparing Razorpay...');
     try {
         const data = await apiCall('/api/payments/razorpay-order', { plan });
-        if (!data || !data.order) throw new Error('Failed to setup order.');
+        if (!data || !data.order) throw new Error('Order creation failed.');
 
         const options = {
             key: data.key_id,
             amount: data.order.amount,
             currency: data.order.currency,
             name: "NexusAI Studio",
-            description: `Upgrade to ${plan.toUpperCase()} Plan`,
+            description: `Upgrade to ${plan.toUpperCase()}`,
             image: "assets/bot-avatar.png",
             order_id: data.order.id,
             handler: async function (response) {
@@ -850,7 +881,6 @@ async function choosePlan(plan) {
                     razorpay_signature: response.razorpay_signature,
                     plan: plan
                 });
-
                 if (verifyRes && verifyRes.success) {
                     showToast('✅ Upgrade Successful!');
                     setTimeout(() => window.location.reload(), 1500);
@@ -864,12 +894,31 @@ async function choosePlan(plan) {
             },
             theme: { color: "#8b5cf6" }
         };
-
         const rzp = new Razorpay(options);
         rzp.open();
     } catch (err) {
         showToast('❌ ' + err.message);
-        console.error(err);
+    }
+}
+
+async function submitManualPayment() {
+    const transactionId = document.getElementById('manual-trnx-id').value.trim();
+    if (!transactionId) return showToast('⚠️ Please enter Transaction ID');
+
+    showToast('📤 Submitting...');
+    try {
+        const res = await apiCall('/api/payments/manual-submit', {
+            plan: currentSelectedPlan,
+            transactionId: transactionId
+        });
+        if (res.success) {
+            showToast('✅ Submitted! Admin will verify.');
+            setTimeout(() => hideUpgrade(), 2000);
+        } else {
+            throw new Error(res.error || 'Submission failed');
+        }
+    } catch (err) {
+        showToast('❌ ' + err.message);
     }
 }
 
