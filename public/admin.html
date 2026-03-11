@@ -252,6 +252,29 @@
                 </div>
             </div>
         </div>
+
+        <!-- PAYMENTS VIEW -->
+        <div id="view-payments" class="view-section">
+            <div class="glass" style="padding:30px; border-radius:30px;">
+                <h3 style="margin-bottom: 20px;"><i class="fas fa-receipt"></i> Pending Manual Payments</h3>
+                <div style="overflow-x: auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>User Email</th>
+                                <th>Plan</th>
+                                <th>Transaction ID / UTR</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="payments-tbody">
+                            <!-- Pending payments will inject here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </main>
 
     <div id="toast">✅ Action Successful</div>
@@ -277,6 +300,58 @@
 
             if (viewId === 'users') loadUsers();
             if (viewId === 'dashboard') fetchStats();
+            if (viewId === 'payments') loadPendingPayments();
+        }
+
+        async function loadPendingPayments() {
+            try {
+                const res = await fetch('/api/payments/admin-pending', { headers: { 'Authorization': `Bearer ${token}` } });
+                const payments = await res.json();
+                const tbody = document.getElementById('payments-tbody');
+
+                if (payments.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:40px; color:var(--text-secondary);">No pending payments found.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = payments.map(p => `
+                    <tr>
+                        <td style="font-size:12px;">${new Date(p.date).toLocaleString()}</td>
+                        <td><strong>${p.userEmail}</strong></td>
+                        <td><span class="health-badge" style="background:rgba(139,92,246,0.1); color:var(--primary);">${p.plan}</span></td>
+                        <td><code style="background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:4px;">${p.transactionId}</code></td>
+                        <td>
+                            <button class="glass sm-btn" style="color:#10b981; margin-right:8px;" onclick="handlePaymentAction('${p.id}', 'approve')">Approve</button>
+                            <button class="glass sm-btn" style="color:#ef4444;" onclick="handlePaymentAction('${p.id}', 'reject')">Reject</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                showToast('Failed to load payments', true);
+            }
+        }
+
+        async function handlePaymentAction(paymentId, action) {
+            if (!confirm(`Are you sure you want to ${action} this payment?`)) return;
+            try {
+                const res = await fetch('/api/payments/admin-action', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ paymentId, action })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(`Payment ${action}d successfully`);
+                    loadPendingPayments();
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (err) {
+                showToast(err.message, true);
+            }
         }
 
         async function fetchStats() {
