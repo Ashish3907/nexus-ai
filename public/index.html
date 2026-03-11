@@ -712,23 +712,103 @@
   </main>
 
   <!-- Modals -->
+  <!-- Modals -->
   <div id="upgrade-modal" class="modal-overlay" onclick="if(event.target === this) hideUpgrade()">
-    <div class="modal-content glass">
+    <div class="modal-content glass" style="max-width:850px;">
       <button class="close-modal" onclick="hideUpgrade()"><i class="fas fa-times"></i></button>
-      <h2 class="text-3d" style="font-size:2.5rem; margin-bottom:12px;">Unleash Your Full Potential 🚀</h2>
-      <div class="pricing-grid">
-        <!-- Pricing cards -->
-        <div class="pricing-card glass">
-          <h3>Starter</h3>
-          <p class="price">$9</p><button class="primary-btn" onclick="choosePlan('starter')">Choose</button>
+
+      <div id="pricing-view">
+        <h2 class="text-3d" style="font-size:2.5rem; margin-bottom:12px;">Unleash Your Full Potential 🚀</h2>
+        <p style="text-align:center; color:var(--text-secondary); margin-bottom:30px;">Choose a plan that fits your
+          creative journey.</p>
+        <div class="pricing-grid">
+          <div class="pricing-card glass">
+            <h3>Starter</h3>
+            <p class="price">₹799</p>
+            <ul style="list-style:none; padding:0; margin:20px 0; font-size:14px; color:var(--text-secondary);">
+              <li><i class="fas fa-check" style="color:var(--primary);"></i> 1000 Credits</li>
+              <li><i class="fas fa-check" style="color:var(--primary);"></i> All AI Tools</li>
+              <li><i class="fas fa-check" style="color:var(--primary);"></i> Email Support</li>
+            </ul>
+            <button class="primary-btn" onclick="selectPlan('starter')">Choose Starter</button>
+          </div>
+          <div class="pricing-card glass active" style="border:2px solid var(--primary);">
+            <div
+              style="background:var(--primary); color:white; font-size:10px; font-weight:800; padding:4px 12px; border-radius:100px; position:absolute; top:-12px; left:50%; transform:translateX(-50%); text-transform:uppercase;">
+              Most Popular</div>
+            <h3>Pro</h3>
+            <p class="price">₹2,499</p>
+            <ul style="list-style:none; padding:0; margin:20px 0; font-size:14px; color:var(--text-secondary);">
+              <li><i class="fas fa-check" style="color:var(--primary);"></i> Unlimited Credits</li>
+              <li><i class="fas fa-check" style="color:var(--primary);"></i> GPT-4o Access</li>
+              <li><i class="fas fa-check" style="color:var(--primary);"></i> Priority Support</li>
+            </ul>
+            <button class="primary-btn" onclick="selectPlan('pro')">Go Pro</button>
+          </div>
+          <div class="pricing-card glass">
+            <h3>Business</h3>
+            <p class="price">₹7,999</p>
+            <ul style="list-style:none; padding:0; margin:20px 0; font-size:14px; color:var(--text-secondary);">
+              <li><i class="fas fa-check" style="color:var(--primary);"></i> 5 Team Seats</li>
+              <li><i class="fas fa-check" style="color:var(--primary);"></i> Custom AI Models</li>
+              <li><i class="fas fa-check" style="color:var(--primary);"></i> Dedicated Manager</li>
+            </ul>
+            <button class="primary-btn" onclick="selectPlan('business')">Choose Business</button>
+          </div>
         </div>
-        <div class="pricing-card glass active">
-          <h3>Pro</h3>
-          <p class="price">$29</p><button class="primary-btn" onclick="choosePlan('pro')">Get Pro</button>
+      </div>
+
+      <div id="payment-method-view" style="display:none; text-align:center;">
+        <button class="glass sm-btn" style="position:absolute; top:20px; left:20px;" onclick="backToPricing()">
+          <i class="fas fa-arrow-left"></i> Back
+        </button>
+        <h2 style="margin-bottom:8px;">Choose Payment Method</h2>
+        <p style="color:var(--text-secondary); margin-bottom:24px;">Selected: <span id="selected-plan-name"
+            style="color:var(--primary); font-weight:700;">PRO Plan</span></p>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+          <!-- Card/Netbanking via Razorpay -->
+          <div class="glass" style="padding:24px; cursor:pointer; border:1px solid var(--border); transition:0.3s;"
+            onclick="payWithRazorpay()" onmouseover="this.style.borderColor='var(--primary)'"
+            onmouseout="this.style.borderColor='var(--border)'">
+            <i class="fas fa-credit-card" style="font-size:32px; color:var(--primary); margin-bottom:12px;"></i>
+            <h4 style="margin-bottom:8px;">Instant Activation</h4>
+            <p style="font-size:12px; color:var(--text-secondary);">Cards, Netbanking, Wallets (via Razorpay)</p>
+          </div>
+          <!-- Direct UPI -->
+          <div class="glass" style="padding:24px; cursor:pointer; border:1px solid var(--border); transition:0.3s;"
+            onclick="showDirectUPI()" onmouseover="this.style.borderColor='#10b981'"
+            onmouseout="this.style.borderColor='var(--border)'">
+            <i class="fas fa-mobile-screen-button" style="font-size:32px; color:#10b981; margin-bottom:12px;"></i>
+            <h4 style="margin-bottom:8px;">Direct UPI (GPay)</h4>
+            <p style="font-size:12px; color:var(--text-secondary);">Zero fees, Manual approval (sbashish3907@oksbi)</p>
+          </div>
         </div>
-        <div class="pricing-card glass">
-          <h3>Business</h3>
-          <p class="price">$99</p><button class="primary-btn" onclick="choosePlan('business')">Choose</button>
+      </div>
+
+      <div id="direct-upi-view" style="display:none; text-align:center;">
+        <button class="glass sm-btn" style="position:absolute; top:20px; left:20px;" onclick="backToMethods()">
+          <i class="fas fa-arrow-left"></i> Back
+        </button>
+        <h2 style="margin-bottom:16px;">Direct UPI Payment</h2>
+        <div class="glass" style="padding:20px; background:rgba(0,0,0,0.2); border-radius:16px; margin-bottom:20px;">
+          <p style="font-size:14px; margin-bottom:8px; color:var(--text-secondary);">Scan or pay to this UPI ID:</p>
+          <div style="font-size:20px; font-weight:800; color:var(--primary); letter-spacing:1px; margin-bottom:12px;"
+            id="display-upi-id">sbashish3907@oksbi</div>
+          <p style="font-size:12px; color:var(--text-secondary);">Pay exact amount: <span id="display-amount"
+              style="color:var(--text-primary); font-weight:700;">₹2,499</span></p>
+        </div>
+
+        <div style="text-align:left; max-width:400px; margin:0 auto;">
+          <label
+            style="font-size:12px; font-weight:700; color:var(--text-secondary); margin-bottom:8px; display:block;">Enter
+            Transaction ID / UTR:</label>
+          <input type="text" id="manual-trnx-id" class="glass" placeholder="e.g., 401234567890"
+            style="width:100%; padding:14px; margin-bottom:16px; border-radius:12px; border:1px solid var(--border);">
+          <button class="primary-btn" style="width:100%; background:#10b981;" onclick="submitManualPayment()">Confirm &
+            Submit</button>
+          <p style="font-size:11px; color:var(--text-secondary); margin-top:12px; text-align:center;">Credits will be
+            added after manual verification (usually within 1 hour).</p>
         </div>
       </div>
     </div>
