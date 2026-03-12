@@ -1706,68 +1706,7 @@ window.showSettings = () => {
     loadPreferences();
 };
 
-// ── Pro Upgrade & Stripe Integration ─────────────────────────────────────
-async function showUpgrade() {
-    document.getElementById('upgrade-modal').style.display = 'flex';
-    const container = document.getElementById('plans-container');
 
-    try {
-        const res = await fetch('/api/payments/plans');
-        const data = await res.json();
-
-        if (!data.plans) throw new Error('Failed to load plans');
-
-        let html = '';
-        for (const [key, plan] of Object.entries(data.plans)) {
-            html += `
-            <div class="glass" style="padding:32px; border-radius:24px; text-align:center; position:relative; overflow:hidden; border:1px solid ${key === 'pro' ? 'var(--primary)' : 'var(--border)'}; background:${key === 'pro' ? 'rgba(139, 92, 246, 0.05)' : 'rgba(255,255,255,0.02)'};">
-                ${key === 'pro' ? '<div style="position:absolute; top:0; left:0; right:0; background:var(--primary); color:white; font-size:12px; font-weight:700; padding:4px 0;">MOST POPULAR</div>' : ''}
-                <h3 style="font-size:24px; margin-bottom:12px; margin-top:${key === 'pro' ? '16px' : '0'}">${plan.name}</h3>
-                <div style="font-size:36px; font-weight:800; margin-bottom:24px;">${plan.price}</div>
-                <ul style="list-style:none; text-align:left; font-size:14px; color:var(--text-secondary); margin-bottom:32px; display:flex; flex-direction:column; gap:12px;">
-                    ${plan.features.map(f => `<li><i class="fas fa-check" style="color:var(--green); margin-right:8px;"></i> ${f}</li>`).join('')}
-                </ul>
-                <button class="primary-btn" style="width:100%;" onclick="checkout('${key}')">${key === 'starter' ? 'Current Plan' : 'Select ' + plan.name}</button>
-            </div>`;
-        }
-
-        container.innerHTML = html;
-
-        if (!data.stripeEnabled) {
-            container.innerHTML += `<div style="grid-column: 1 / -1; margin-top:20px; font-size:12px; color:var(--text-secondary); text-align:center;">Note: Stripe integration is currently in Demo mode. Add STRIPE_SECRET_KEY to processing node.</div>`;
-        }
-    } catch (err) {
-        container.innerHTML = `<div style="color:#fca5a5;">Error loading plans: ${err.message}</div>`;
-    }
-}
-
-async function checkout(planKey) {
-    if (planKey === 'starter') return showToast('You are already on the Starter plan.');
-
-    showToast('Redirecting to secure checkout...', 'success');
-    try {
-        const res = await fetch('/api/payments/checkout', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ plan: planKey })
-        });
-
-        const data = await res.json();
-        if (data.url) {
-            window.location.href = data.url;
-        } else if (data.demo) {
-            alert(data.message);
-            showToast('Demo payment processed!', 'success');
-        } else {
-            throw new Error(data.error || 'Failed to initialize checkout');
-        }
-    } catch (err) {
-        showToast(err.message, 'error');
-    }
-}
 
 // Check for successful payment redirect
 window.addEventListener('DOMContentLoaded', () => {
