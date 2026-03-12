@@ -17,17 +17,27 @@ if (userRaw) {
             const nameEl = document.querySelector('.user-name');
             const planEl = document.querySelector('.user-plan');
             const avatarEl = document.querySelector('.user-avatar');
-            if (nameEl && currentUser.name) nameEl.textContent = currentUser.name;
-            if (planEl) planEl.textContent = `${currentUser.plan === 'free' ? 'Free Plan' : currentUser.plan + ' Plan'} · ${currentUser.credits || 100} credits`;
-            if (avatarEl) avatarEl.textContent = (currentUser.name || 'U')[0].toUpperCase();
 
-            // Toggle Admin Link
-            const adminLink = document.getElementById('admin-link');
-            if (adminLink && currentUser.role === 'admin') {
-                adminLink.style.display = 'flex';
+            if (currentUser) {
+                if (nameEl && currentUser.name) nameEl.textContent = currentUser.name;
+                if (planEl) {
+                    const planName = currentUser.plan === 'free' ? 'Free Plan' : (currentUser.plan || 'Free') + ' Plan';
+                    const credits = currentUser.credits !== undefined ? currentUser.credits : 100;
+                    planEl.textContent = `${planName} · ${credits} credits`;
+                }
+                if (avatarEl) avatarEl.textContent = (currentUser.name || 'U')[0].toUpperCase();
+
+                // Toggle Admin Link
+                const adminLink = document.getElementById('admin-link');
+                if (adminLink && currentUser.role === 'admin') {
+                    adminLink.style.display = 'flex';
+                }
             }
         });
-    } catch (e) { /* ignore */ }
+    } catch (e) {
+        console.error('Failed to parse user data:', e);
+        currentUser = null;
+    }
 }
 
 // ── API Helper ──────────────────────────────────────────────────────────────
@@ -113,8 +123,10 @@ function switchTool(toolId) {
         audio: { h1: 'Audio AI', p: 'Convert voice and audio recordings into text summaries.' }
     };
 
-    document.getElementById('page-title').textContent = titles[toolId].h1;
-    document.getElementById('page-subtitle').textContent = titles[toolId].p;
+    const pageTitle = document.getElementById('page-title');
+    const pageSubtitle = document.getElementById('page-subtitle');
+    if (pageTitle && titles[toolId]) pageTitle.textContent = titles[toolId].h1;
+    if (pageSubtitle && titles[toolId]) pageSubtitle.textContent = titles[toolId].p;
 
     if (toolId === 'library') loadLibrary();
     if (toolId === 'workspaces') loadWorkspaces();
