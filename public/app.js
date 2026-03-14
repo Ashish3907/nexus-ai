@@ -922,11 +922,41 @@ function hideUpgrade() {
     document.getElementById('upgrade-modal').classList.remove('show');
 }
 
+let billingCycle = 'monthly';
+function toggleBilling() {
+    billingCycle = billingCycle === 'monthly' ? 'yearly' : 'monthly';
+    const toggle = document.getElementById('billing-toggle');
+    const labelMonthly = document.getElementById('label-monthly');
+    const labelYearly = document.getElementById('label-yearly');
+
+    toggle.classList.toggle('yearly');
+    labelMonthly.classList.toggle('active');
+    labelYearly.classList.toggle('active');
+
+    const prices = {
+        monthly: { starter: '₹799', pro: '₹2,499', business: '₹7,999' },
+        yearly: { starter: '₹639', pro: '₹1,999', business: '₹6,399' }
+    };
+
+    document.getElementById('price-starter').innerHTML = `${prices[billingCycle].starter}<span>/${billingCycle === 'monthly' ? 'mo' : 'mo'}</span>`;
+    document.getElementById('price-pro').innerHTML = `${prices[billingCycle].pro}<span>/${billingCycle === 'monthly' ? 'mo' : 'mo'}</span>`;
+    document.getElementById('price-business').innerHTML = `${prices[billingCycle].business}<span>/${billingCycle === 'monthly' ? 'mo' : 'mo'}</span>`;
+}
+
 function selectPlan(plan) {
     currentSelectedPlan = plan;
-    const pricing = { starter: '₹799', pro: '₹2,499', business: '₹7,999' };
-    document.getElementById('selected-plan-name').textContent = plan.toUpperCase() + " Plan";
-    document.getElementById('display-amount').textContent = pricing[plan];
+    const pricing = {
+        monthly: { starter: '₹799', pro: '₹2,499', business: '₹7,999' },
+        yearly: { starter: '₹6,390', pro: '₹19,990', business: '₹63,990' } // Total for the year
+    };
+
+    // For display in method view
+    const displayPrice = billingCycle === 'monthly' ?
+        pricing.monthly[plan] :
+        pricing.monthly[plan].replace('₹', '₹') + " (Billed Yearly)"; // Let's keep it simple for now
+
+    document.getElementById('selected-plan-name').textContent = plan.toUpperCase() + ` Plan (${billingCycle})`;
+    document.getElementById('display-amount').textContent = billingCycle === 'monthly' ? pricing.monthly[plan] : pricing.yearly[plan];
 
     document.getElementById('pricing-view').style.display = 'none';
     document.getElementById('payment-method-view').style.display = 'block';
