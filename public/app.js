@@ -111,13 +111,14 @@ function switchTool(toolId) {
 
     // Update Header
     const titles = {
+        home: { h1: 'Nexus Home', p: 'Your AI intelligence dashboard.' },
         chat: { h1: 'AI Chat', p: 'Ask anything. Get instant AI-powered answers.' },
+        nexussearch: { h1: 'NexusSearch', p: 'Real-time web search with AI-synthesized answers.' },
         library: { h1: 'My Library', p: 'Manage your saved generations and assets.' },
         workspaces: { h1: 'Workspaces', p: 'Organize your projects and collaborations.' },
         writer: { h1: 'Content Writer', p: 'Generate high-quality copy in seconds.' },
         image: { h1: 'Image Prompt AI', p: 'Craft professional prompts for any AI model.' },
         code: { h1: 'Code Helper', p: 'Write, debug, and explain code with AI.' },
-        seo: { h1: 'SEO Optimizer', p: 'Analyze and optimize your content for search.' },
         seo: { h1: 'SEO Optimizer', p: 'Analyze and optimize your content for search.' },
         docs: { h1: 'Document AI', p: 'Summarize and analyze large documents.' },
         audio: { h1: 'Audio AI', p: 'Convert voice and audio recordings into text summaries.' }
@@ -831,6 +832,82 @@ function saveSettings() {
 
 function showNotifications() { document.getElementById('notifications-modal').classList.add('show'); }
 function hideNotifications() { document.getElementById('notifications-modal').classList.remove('show'); }
+
+// ── NexusSearch — Perplexity-Like AI Search ────────────────────────────────
+function setNexusQuery(text) {
+    document.getElementById('nexussearch-input').value = text;
+    runNexusSearch();
+}
+
+function renderNexusMarkdown(text) {
+    // Render basic markdown + replace [1], [2] etc. with citation badges
+    return text
+        .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+        .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+        .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+        .replace(/`(.+?)`/g, '<code style="background:rgba(16,185,129,0.1);padding:2px 6px;border-radius:4px;font-family:monospace;">$1</code>')
+        .replace(/^- (.+)$/gm, '<li>$1</li>')
+        .replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>')
+        .replace(/\[(\d+)\]/g, '<span class="nexus-citation">$1</span>')
+        .replace(/\n\n/g, '</p><p>')
+        .replace(/\n/g, '<br>')
+        .replace(/^(.+)$(?!.*<\/)/, '<p>$1</p>');
+}
+
+async function runNexusSearch() {
+    const query = document.getElementById('nexussearch-input').value.trim();
+    if (!query) return;
+
+    const loading = document.getElementById('nexussearch-loading');
+    const results = document.getElementById('nexussearch-results');
+    const sourcesEl = document.getElementById('nexussearch-sources');
+    const answerEl = document.getElementById('nexussearch-answer');
+
+    // Show loading state
+    loading.style.display = 'block';
+    results.style.display = 'none';
+
+    try {
+        const data = await apiCall('/api/web/search', { query });
+
+        // Render source cards
+        if (data.sources && data.sources.length > 0) {
+            sourcesEl.innerHTML = data.sources.map(s => `
+                <a class="nexus-source-card" href="${s.url}" target="_blank" rel="noopener">
+                    <div class="nexus-source-num">${s.index}</div>
+                    <div class="nexus-source-title">${s.title}</div>
+                    <div class="nexus-source-domain">
+                        <img src="https://www.google.com/s2/favicons?domain=${s.source}&sz=16" style="width:14px;height:14px;border-radius:3px;" onerror="this.style.display='none'">
+                        ${s.source}
+                    </div>
+                </a>
+            `).join('');
+        } else {
+            sourcesEl.innerHTML = '<p style="color:var(--text-secondary); font-size:13px;">No sources found.</p>';
+        }
+
+        // Render AI answer with animated typewriter
+        answerEl.innerHTML = '';
+        loading.style.display = 'none';
+        results.style.display = 'block';
+
+        // Typewriter effect
+        const rendered = renderNexusMarkdown(data.answer || 'No answer generated.');
+        answerEl.innerHTML = rendered;
+
+        // Scroll to results
+        results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    } catch (err) {
+        loading.style.display = 'none';
+        results.style.display = 'block';
+        sourcesEl.innerHTML = '';
+        answerEl.innerHTML = `<div style="color:#fca5a5;"><i class="fas fa-exclamation-triangle"></i> Search failed: ${err.message}</div>`;
+    }
+}
+
 
 // ── Upgrade / Payments ─────────────────────────────────────────────────────
 let currentSelectedPlan = null;
