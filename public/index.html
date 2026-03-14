@@ -804,42 +804,66 @@
       <button class="close-modal" onclick="hideUpgrade()"><i class="fas fa-times"></i></button>
 
       <div id="pricing-view">
-        <h2 class="text-3d" style="font-size:2.5rem; margin-bottom:12px;">Unleash Your Full Potential 🚀</h2>
-        <p style="text-align:center; color:var(--text-secondary); margin-bottom:30px;">Choose a plan that fits your
-          creative journey.</p>
-        <div class="pricing-grid">
-          <div class="pricing-card glass">
-            <h3>Starter</h3>
-            <p class="price">₹799</p>
-            <ul style="list-style:none; padding:0; margin:20px 0; font-size:14px; color:var(--text-secondary);">
-              <li><i class="fas fa-check" style="color:var(--primary);"></i> 1000 Credits</li>
-              <li><i class="fas fa-check" style="color:var(--primary);"></i> All AI Tools</li>
-              <li><i class="fas fa-check" style="color:var(--primary);"></i> Email Support</li>
+        <div class="pricing-header">
+          <h2 class="text-3d"
+            style="font-size:2.8rem; margin-bottom:12px; background: linear-gradient(135deg, #fff, #94a3b8); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
+            Elevate Your Creativity 💎</h2>
+          <p style="color:var(--text-secondary); font-size:16px;">Pick a premium plan and unlock the full power of
+            NexusAI.</p>
+        </div>
+
+        <!-- Billing Toggle -->
+        <div class="billing-toggle-container">
+          <span class="toggle-label active" id="label-monthly">Monthly</span>
+          <div class="toggle-switch" id="billing-toggle" onclick="toggleBilling()"></div>
+          <span class="toggle-label" id="label-yearly">Yearly <span class="save-badge">Save 20%</span></span>
+        </div>
+
+        <div class="premium-pricing-grid">
+          <!-- Starter -->
+          <div class="premium-card">
+            <div class="plan-icon"><i class="fas fa-sparkles"></i></div>
+            <div class="plan-name">Starter</div>
+            <div class="plan-price" id="price-starter">₹799<span>/mo</span></div>
+            <p class="plan-desc">Perfect for individual creators starting their AI journey.</p>
+            <ul class="feature-list">
+              <li class="feature-item"><i class="fas fa-check"></i> 1,000 Credits / mo</li>
+              <li class="feature-item"><i class="fas fa-check"></i> All Generation Tools</li>
+              <li class="feature-item"><i class="fas fa-check"></i> Standard Support</li>
+              <li class="feature-item limit"><i class="fas fa-xmark"></i> Advanced Analytics</li>
             </ul>
-            <button class="primary-btn" onclick="selectPlan('starter')">Choose Starter</button>
+            <button class="pricing-cta secondary" onclick="selectPlan('starter')">Get Started</button>
           </div>
-          <div class="pricing-card glass active" style="border:2px solid var(--primary);">
-            <div
-              style="background:var(--primary); color:white; font-size:10px; font-weight:800; padding:4px 12px; border-radius:100px; position:absolute; top:-12px; left:50%; transform:translateX(-50%); text-transform:uppercase;">
-              Most Popular</div>
-            <h3>Pro</h3>
-            <p class="price">₹2,499</p>
-            <ul style="list-style:none; padding:0; margin:20px 0; font-size:14px; color:var(--text-secondary);">
-              <li><i class="fas fa-check" style="color:var(--primary);"></i> Unlimited Credits</li>
-              <li><i class="fas fa-check" style="color:var(--primary);"></i> GPT-4o Access</li>
-              <li><i class="fas fa-check" style="color:var(--primary);"></i> Priority Support</li>
+
+          <!-- Pro -->
+          <div class="premium-card popular">
+            <div class="popular-badge">Most Popular</div>
+            <div class="plan-icon"><i class="fas fa-crown"></i></div>
+            <div class="plan-name">Professional</div>
+            <div class="plan-price" id="price-pro">₹2,499<span>/mo</span></div>
+            <p class="plan-desc">The ultimate toolkit for professionals and power users.</p>
+            <ul class="feature-list">
+              <li class="feature-item"><i class="fas fa-check"></i> 5,000 Credits / mo</li>
+              <li class="feature-item"><i class="fas fa-check"></i> Pro Model Access</li>
+              <li class="feature-item"><i class="fas fa-check"></i> Priority API Access</li>
+              <li class="feature-item"><i class="fas fa-check"></i> Custom Agent Training</li>
             </ul>
-            <button class="primary-btn" onclick="selectPlan('pro')">Go Pro</button>
+            <button class="pricing-cta primary" onclick="selectPlan('pro')">Upgrade to Pro</button>
           </div>
-          <div class="pricing-card glass">
-            <h3>Business</h3>
-            <p class="price">₹7,999</p>
-            <ul style="list-style:none; padding:0; margin:20px 0; font-size:14px; color:var(--text-secondary);">
-              <li><i class="fas fa-check" style="color:var(--primary);"></i> 5 Team Seats</li>
-              <li><i class="fas fa-check" style="color:var(--primary);"></i> Custom AI Models</li>
-              <li><i class="fas fa-check" style="color:var(--primary);"></i> Dedicated Manager</li>
+
+          <!-- Business -->
+          <div class="premium-card">
+            <div class="plan-icon"><i class="fas fa-building"></i></div>
+            <div class="plan-name">Enterprise</div>
+            <div class="plan-price" id="price-business">₹7,999<span>/mo</span></div>
+            <p class="plan-desc">Scale your business with dedicated power and team tools.</p>
+            <ul class="feature-list">
+              <li class="feature-item"><i class="fas fa-check"></i> Unlimited Credits</li>
+              <li class="feature-item"><i class="fas fa-check"></i> Multi-User Support</li>
+              <li class="feature-item"><i class="fas fa-check"></i> Dedicated Manager</li>
+              <li class="feature-item"><i class="fas fa-check"></i> 99.9% Uptime SLA</li>
             </ul>
-            <button class="primary-btn" onclick="selectPlan('business')">Choose Business</button>
+            <button class="pricing-cta secondary" onclick="selectPlan('business')">Contact Sales</button>
           </div>
         </div>
       </div>
